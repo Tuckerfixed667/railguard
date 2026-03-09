@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Railyard — The Runtime Layer for AI Agents</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f5f5;
+    --border: #e0e0e0;
+    --accent: #ff3c00;
+    --text: #0a0a0a;
+    --muted: #999;
+    --mid: #555;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 56px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(8px);
+  }
+
+  .logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 17px;
+    color: var(--text); text-decoration: none;
+    letter-spacing: -0.03em;
+  }
+  .logo span { color: var(--accent); }
+
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  nav a { color: var(--mid); text-decoration: none; font-size: 12px; transition: color 0.15s; }
+  nav a:hover { color: var(--text); }
+
+  .nav-cta {
+    background: var(--text); color: #fff !important;
+    padding: 9px 20px; font-size: 12px; font-weight: 500;
+    transition: background 0.15s !important;
+  }
+  .nav-cta:hover { background: #333 !important; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 56px;
+    padding-top: 80px;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-left {
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 80px 60px 80px 0;
+    border-right: 1px solid var(--border);
+  }
+
+  .hero-tag {
+    display: inline-block;
+    background: #fff0ed; color: var(--accent);
+    border: 1px solid #ffd0c5;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 5px 12px; margin-bottom: 32px;
+  }
+
+  .hero h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(44px, 5.5vw, 78px);
+    line-height: 0.97;
+    letter-spacing: -0.04em;
+    margin-bottom: 28px;
+  }
+
+  .hero h1 em { font-style: normal; color: var(--accent); }
+
+  .hero-sub {
+    font-size: 15px; color: var(--mid);
+    line-height: 1.8; max-width: 440px; margin-bottom: 40px;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: var(--accent); color: #fff;
+    padding: 14px 32px; text-decoration: none;
+    font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
+    transition: opacity 0.15s;
+    border: none; cursor: pointer;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+
+  .hero-right {
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 80px 0 80px 60px;
+    gap: 0;
+  }
+
+  .stat-row {
+    padding: 32px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .stat-row:first-child { padding-top: 0; }
+  .stat-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .stat-date {
+    font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .stat-row p { font-size: 13px; color: var(--mid); line-height: 1.7; }
+  .stat-row strong { color: var(--text); }
+  .stat-cmd {
+    margin-top: 12px;
+    background: var(--bg2); border-left: 3px solid var(--accent);
+    padding: 10px 14px; font-size: 12px; color: var(--accent);
+  }
+
+  /* FEATURES */
+  .features {
+    padding: 100px 56px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .features-header {
+    display: flex; align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 64px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+  }
+
+  .features-header h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: clamp(32px, 4vw, 54px);
+    letter-spacing: -0.04em; line-height: 1;
+  }
+
+  .features-header span {
+    font-size: 11px; color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+
+  .feature-list { display: flex; flex-direction: column; }
+
+  .feature-row {
+    display: grid; grid-template-columns: 180px 1fr 1fr;
+    gap: 0; padding: 36px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: start;
+    transition: background 0.15s;
+    cursor: default;
+  }
+  .feature-row:last-child { border-bottom: none; }
+  .feature-row:hover { background: var(--bg2); margin: 0 -56px; padding: 36px 56px; }
+
+  .feature-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600; font-size: 22px;
+    letter-spacing: -0.02em; color: var(--accent);
+  }
+
+  .feature-desc {
+    font-size: 14px; color: var(--mid); line-height: 1.75;
+    padding-right: 40px;
+  }
+
+  .feature-detail {
+    font-size: 13px; color: var(--muted); line-height: 1.7;
+  }
+
+  /* HOW */
+  .how {
+    padding: 100px 56px;
+    background: #0a0a0a;
+    color: #fff;
+    border-bottom: 1px solid #1a1a1a;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .how-left {}
+
+  .how .section-label {
+    font-size: 11px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: #333;
+    margin-bottom: 28px;
+  }
+
+  .how h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: clamp(32px, 3.5vw, 52px);
+    letter-spacing: -0.04em; line-height: 1.05;
+    margin-bottom: 48px; color: #fff;
+  }
+
+  .how-steps { display: flex; flex-direction: column; gap: 0; }
+
+  .how-step {
+    display: flex; gap: 20px; align-items: flex-start;
+    padding: 24px 0;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .how-step:first-child { padding-top: 0; }
+  .how-step:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .how-step-num {
+    font-size: 11px; color: #2a2a2a;
+    letter-spacing: 0.1em;
+    padding-top: 2px;
+    flex-shrink: 0;
+    width: 28px;
+  }
+
+  .how-step-body {}
+  .how-step-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600; font-size: 16px;
+    letter-spacing: -0.02em; color: #fff;
+    margin-bottom: 6px;
+  }
+  .how-step-desc {
+    font-size: 12px; color: #444; line-height: 1.7;
+  }
+
+  /* TERMINAL */
+  .terminal-wrap {
+    display: flex; flex-direction: column;
+  }
+
+  .terminal-chrome {
+    background: #161616;
+    border: 1px solid #222;
+    border-bottom: none;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .term-dots { display: flex; gap: 6px; }
+  .term-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .term-dot.r { background: #3a1a1a; }
+  .term-dot.y { background: #2e2a16; }
+  .term-dot.g { background: #1a2e1a; }
+
+  .term-title {
+    font-size: 11px; color: #2a2a2a;
+    letter-spacing: 0.06em;
+    flex: 1; text-align: center;
+    margin-right: 52px; /* offset for dots */
+  }
+
+  .code-terminal {
+    background: #0d0d0d;
+    border: 1px solid #1e1e1e;
+    padding: 28px 32px;
+    font-size: 12.5px;
+    line-height: 1.9;
+  }
+
+  .t-comment { color: #2e2e2e; }
+  .t-cmd { color: #c8d400; }
+  .t-ok { color: #2ea043; }
+  .t-blocked { color: #ff5533; font-weight: 500; }
+  .t-out { color: #3a3a3a; }
+  .t-prompt { color: #333; margin-right: 6px; }
+
+  /* COMPAT */
+  .compat {
+    padding: 60px 56px;
+    border-bottom: 1px solid var(--border);
+    display: flex; gap: 48px; align-items: center; flex-wrap: wrap;
+  }
+
+  .compat-label {
+    font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .compat-items { display: flex; gap: 16px; flex-wrap: wrap; }
+  .compat-chip {
+    padding: 10px 20px; border: 1px solid var(--border);
+    font-size: 13px; color: var(--mid);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .compat-chip.live { border-color: #ccc; color: var(--text); }
+  .compat-chip.live::before { content: '●'; color: #00cc66; font-size: 8px; }
+  .compat-chip.soon::before { content: '○'; color: var(--muted); font-size: 8px; }
+  .compat-chip.soon { opacity: 0.5; }
+
+  /* CTA */
+  .cta {
+    padding: 120px 56px;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center;
+  }
+
+  .cta h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: clamp(40px, 5vw, 68px);
+    letter-spacing: -0.04em; line-height: 1;
+  }
+  .cta h2 em { font-style: normal; color: var(--accent); }
+
+  .cta-right {
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  .meta-tags { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+  .meta-tag {
+    font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+    border: 1px solid var(--border); padding: 6px 14px;
+  }
+
+  footer {
+    padding: 28px 56px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 12px;
+  }
+  footer span, footer a { font-size: 12px; color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+  .footer-links { display: flex; gap: 24px; }
+
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; }
+    .hero-left { border-right: none; padding-right: 0; padding-bottom: 48px; }
+    .hero-right { padding-left: 0; border-top: 1px solid var(--border); padding-top: 48px; }
+    .features, .compat, .cta { padding: 60px 24px; }
+    .how { padding: 60px 24px; grid-template-columns: 1fr; gap: 48px; }
+    .feature-row { grid-template-columns: 1fr; gap: 12px; }
+    .cta { grid-template-columns: 1fr; }
+    footer { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="logo">rail<span>yard</span></a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">Install</a>
+    <a href="#">Docs</a>
+    <a href="https://github.com/railyard/railyard" class="nav-cta">GitHub →</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-tag">Open-source · Rust · MIT</div>
+    <h1>The runtime<br>layer for <em>AI agents</em><br>in production.</h1>
+    <p class="hero-sub">Every agent action passes through Railyard before it hits the world. One hook. Full control. Zero latency. On-device, nothing leaves your machine.</p>
+    <a href="https://github.com/railyard/railyard" class="btn-primary">Star on GitHub →</a>
+  </div>
+  <div class="hero-right">
+    <div class="stat-row">
+      <div class="stat-date">Feb 26, 2026 — DataTalks.Club</div>
+      <p><strong>Claude Code ran <code>terraform destroy</code></strong> on a production stack. 2.5 years of student data. 1.9 million rows. Gone. Found out at midnight.</p>
+      <div class="stat-cmd">$ terraform destroy → VPC + RDS + ECS. Everything.</div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-date">Feb 19, 2026 — GitHub Issue #27063</div>
+      <p><strong>A background Claude agent autonomously ran <code>drizzle-kit push --force</code></strong> against production PostgreSQL. 60+ tables. Months of data. Unrecoverable.</p>
+      <div class="stat-cmd">$ drizzle-kit push --force → 60 tables. No backup. Gone.</div>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="features-header">
+    <h2>Six features.<br>One floor.</h2>
+    <span>What Railyard does</span>
+  </div>
+  <div class="feature-list">
+    <div class="feature-row">
+      <div class="feature-name">Intercept</div>
+      <div class="feature-desc">Every agent action is caught before it executes — file writes, shell commands, API calls, database queries. Nothing gets through without passing Railyard first.</div>
+      <div class="feature-detail">Hooks directly into Claude Code's native hooks system. No changes to your agent, your prompts, or your workflow.</div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-name">Block</div>
+      <div class="feature-desc">Configurable blocklist stops destructive commands cold. <code>terraform destroy</code>, <code>DROP TABLE</code>, <code>push --force</code> — define what's off-limits.</div>
+      <div class="feature-detail">Pattern matching, command-level rules, and glob support. Works against any shell command, not just known bad actors.</div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-name">Approve</div>
+      <div class="feature-desc">Flag risky actions for human sign-off before they run. Agent pauses, you review, you decide. No agent code changes required.</div>
+      <div class="feature-detail">Approval queue in the terminal or via webhook. Configurable per-command or per-risk-level. Timeout with deny as default.</div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-name">Trace</div>
+      <div class="feature-desc">Full structured audit log of every action, every session. Know exactly what your agent did, in what order, and why.</div>
+      <div class="feature-detail">JSON output, session-scoped logs, timestamps, command args, and exit codes. Pipe to your existing observability stack.</div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-name">Rollback</div>
+      <div class="feature-desc">Undo any agent action in one command. <code>railyard rollback [id]</code> and you're back. Works for files, config edits, and more.</div>
+      <div class="feature-detail">Automatic state snapshots before every intercepted write. Rollback is instant, atomic, and logged.</div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-name">Policy</div>
+      <div class="feature-desc">All rules defined in YAML, version-controlled alongside your code. One file, all your guardrails, always in sync with your team.</div>
+      <div class="feature-detail">Supports blocklists, allowlists, approval thresholds, resource tagging, and environment-scoped overrides.</div>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="how-left">
+    <div class="section-label">How it works</div>
+    <h2>Up in<br>60 seconds.</h2>
+    <div class="how-steps">
+      <div class="how-step">
+        <div class="how-step-num">01</div>
+        <div class="how-step-body">
+          <div class="how-step-title">Install</div>
+          <div class="how-step-desc">One curl command. Railyard registers itself with Claude Code's native hooks system.</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">02</div>
+        <div class="how-step-body">
+          <div class="how-step-title">Configure</div>
+          <div class="how-step-desc">Drop a <code style="color:#555;font-size:11px;">railyard.yaml</code> in your project. Define blocklists, approval rules, protected resources.</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-step-num">03</div>
+        <div class="how-step-body">
+          <div class="how-step-title">Run your agent normally</div>
+          <div class="how-step-desc">Every action is intercepted before execution. Destructive commands are blocked or queued. You stay in control.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="terminal-wrap">
+    <div class="terminal-chrome">
+      <div class="term-dots">
+        <div class="term-dot r"></div>
+        <div class="term-dot y"></div>
+        <div class="term-dot g"></div>
+      </div>
+      <div class="term-title">railyard — zsh</div>
+    </div>
+    <div class="code-terminal">
+      <div class="t-comment"># install</div>
+      <div><span class="t-prompt">$</span><span class="t-cmd"> curl -fsSL https://railyard.dev/install.sh | sh</span></div>
+      <br>
+      <div><span class="t-prompt">$</span><span class="t-cmd"> railyard init</span></div>
+      <div class="t-ok">✓ hooked into Claude Code hooks system</div>
+      <div class="t-ok">✓ policy loaded · railyard.yaml</div>
+      <div class="t-ok">✓ runtime active · async · on-device · 0ms overhead</div>
+      <br>
+      <div class="t-comment"># run your agent as normal</div>
+      <div><span class="t-prompt">$</span><span class="t-cmd"> claude "clean up duplicate AWS resources"</span></div>
+      <div class="t-blocked">⛔ BLOCKED  terraform destroy</div>
+      <div class="t-out">&nbsp;&nbsp;&nbsp;rule: destructive-infra · railyard.yaml:14</div>
+      <div class="t-out">&nbsp;&nbsp;&nbsp;action queued → railyard approve a3f9</div>
+    </div>
+  </div>
+</section>
+
+<div class="compat">
+  <div class="compat-label">Works with</div>
+  <div class="compat-items">
+    <div class="compat-chip live">Claude Code</div>
+    <div class="compat-chip soon">Codex — coming soon</div>
+    <div class="compat-chip soon">Kiro — coming soon</div>
+  </div>
+</div>
+
+<section class="cta">
+  <h2>Your agents are already<br>in <em>production.</em><br>Is there a floor?</h2>
+  <div class="cta-right">
+    <a href="https://github.com/railyard/railyard" class="btn-primary" style="text-align:center;">Star on GitHub →</a>
+    <div class="meta-tags">
+      <div class="meta-tag">MIT Licensed</div>
+      <div class="meta-tag">Written in Rust</div>
+      <div class="meta-tag">On-device</div>
+      <div class="meta-tag">Free forever</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <a href="#" style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: -0.03em; color: #0a0a0a; text-decoration: none;">rail<span style="color: var(--accent);">yard</span></a>
+  <span>Copyright © 2026 Ari Choudhury. MIT License.</span>
+  <div class="footer-links">
+    <a href="#">GitHub</a>
+    <a href="#">Docs</a>
+    <a href="#">Cloud</a>
+  </div>
+</footer>
+
+</body>
+</html>
