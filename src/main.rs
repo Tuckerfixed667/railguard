@@ -1,16 +1,8 @@
-mod block;
-mod configure;
-mod fence;
-mod hook;
-mod install;
-mod policy;
-mod snapshot;
-mod trace;
-mod types;
-
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use std::path::Path;
+
+use railyard::{configure, context, hook, install, policy, snapshot, trace};
 
 #[derive(Parser)]
 #[command(name = "railyard", version, about = "The runtime layer for AI agents in production")]
@@ -70,6 +62,26 @@ enum Commands {
         steps: Option<usize>,
     },
 
+    /// Show session context for rollback (designed for Claude Code to read)
+    Context {
+        /// Session ID
+        #[arg(long)]
+        session: String,
+        /// Show full diffs (verbose)
+        #[arg(short, long)]
+        verbose: bool,
+    },
+
+    /// Show diff between snapshots and current files
+    Diff {
+        /// Session ID
+        #[arg(long)]
+        session: String,
+        /// Specific file to diff (optional)
+        #[arg(long)]
+        file: Option<String>,
+    },
+
     /// Show railyard status
     Status,
 
@@ -90,6 +102,8 @@ fn main() {
         Commands::Hook { event } => hook::handler::run(&event),
         Commands::Log { session, count } => cmd_log(session, count),
         Commands::Rollback { id, session, file, steps } => cmd_rollback(id, session, file, steps),
+        Commands::Context { session, verbose } => cmd_context(&session, verbose),
+        Commands::Diff { session, file } => cmd_diff(&session, file),
         Commands::Status => cmd_status(),
         Commands::Configure => configure::run_configure(),
         Commands::Chat => cmd_chat(),
@@ -330,6 +344,25 @@ fn cmd_rollback(
             }
         }
     }
+}
+
+fn cmd_context(session_id: &str, verbose: bool) -> i32 {
+    let cwd = std::env::current_dir().unwrap_or_default();
+    let policy = policy::loader::load_policy_or_defaults(&cwd);
+    let trace_dir = cwd.join(&policy.trace.directory);
+    let snap_dir = cwd.join(&policy.snapshot.directory);
+
+    context::print_context(&trace_dir, &snap_dir, session_id, verbose);
+    0
+}
+
+fn cmd_diff(session_id: &str, file: Option<String>) -> i32 {
+    let cwd = std::env::current_dir().unwrap_or_default();
+    let policy = policy::loader::load_policy_or_defaults(&cwd);
+    let snap_dir = cwd.join(&policy.snapshot.directory);
+
+    context::print_diff(&snap_dir, session_id, file.as_deref());
+    0
 }
 
 fn cmd_status() -> i32 {

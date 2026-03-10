@@ -7,6 +7,10 @@ license = "MIT"
 repository = "https://github.com/railyarddev/railyard"
 keywords = ["ai", "agents", "safety", "runtime", "claude"]
 
+[lib]
+name = "railyard"
+path = "src/lib.rs"
+
 [[bin]]
 name = "railyard"
 path = "src/main.rs"
