@@ -147,9 +147,7 @@ The agent can't turn Railyard off:
 
 ## Can you break it?
 
-Railyard is not foolproof. It's a best-effort guardrail, not a security boundary. If you find a way to bypass it — **we want to know**. Open an issue or PR with your bypass and we'll add a rule for it.
-
-We've run [3 rounds of red teaming](PENTEST-REPORT.md) and caught 28 attack vectors so far. There are more. Help us find them.
+We've run [3 rounds of red teaming](PENTEST-REPORT.md) and caught 28 attack vectors so far. Think you can find one we missed? Open an issue or PR with your bypass and we'll add a rule for it.
 
 ---
 
