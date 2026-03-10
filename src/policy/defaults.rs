@@ -105,6 +105,20 @@ fn core_blocklist() -> Vec<Rule> {
             message: Some("Blocked: agents cannot uninstall Railyard hooks".to_string()),
         },
         Rule {
+            name: "railyard-install-mode".to_string(),
+            tool: "Bash".to_string(),
+            pattern: r"railyard\s+install".to_string(),
+            action: "approve".to_string(),
+            message: Some("Changing Railyard protection mode requires human approval".to_string()),
+        },
+        Rule {
+            name: "railyard-config-edit".to_string(),
+            tool: "*".to_string(),
+            pattern: r"railyard\.yaml".to_string(),
+            action: "approve".to_string(),
+            message: Some("Editing Railyard policy requires human approval — review the changes carefully".to_string()),
+        },
+        Rule {
             name: "railyard-tamper-settings".to_string(),
             tool: "Bash".to_string(),
             pattern: r"\.claude/settings\.json".to_string(),

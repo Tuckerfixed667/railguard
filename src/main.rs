@@ -5,10 +5,14 @@ use std::path::Path;
 use railyard::{configure, context, hook, install, policy, sandbox, snapshot, trace};
 
 #[derive(Parser)]
-#[command(name = "railyard", version, about = "The runtime layer for AI agents in production")]
+#[command(name = "railyard", version, about = "Keep your AI agents on the rails.")]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
+
+    /// Arguments to pass through to Claude Code (when running without a subcommand)
+    #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+    claude_args: Vec<String>,
 }
 
 #[derive(Subcommand)]
@@ -96,6 +100,13 @@ enum Commands {
         #[command(subcommand)]
         action: SandboxAction,
     },
+
+    /// Launch Claude Code inside the OS-level sandbox
+    Launch {
+        /// Arguments to pass through to Claude Code
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -118,18 +129,21 @@ fn main() {
     let cli = Cli::parse();
 
     let exit_code = match cli.command {
-        Commands::Install { mode } => cmd_install(&mode),
-        Commands::Uninstall => cmd_uninstall(),
-        Commands::Init { mode } => cmd_init(&mode),
-        Commands::Hook { event } => hook::handler::run(&event),
-        Commands::Log { session, count } => cmd_log(session, count),
-        Commands::Rollback { id, session, file, steps } => cmd_rollback(id, session, file, steps),
-        Commands::Context { session, verbose } => cmd_context(&session, verbose),
-        Commands::Diff { session, file } => cmd_diff(&session, file),
-        Commands::Status => cmd_status(),
-        Commands::Configure => configure::run_configure(),
-        Commands::Chat => cmd_chat(),
-        Commands::Sandbox { action } => cmd_sandbox(action),
+        Some(Commands::Install { mode }) => cmd_install(&mode),
+        Some(Commands::Uninstall) => cmd_uninstall(),
+        Some(Commands::Init { mode }) => cmd_init(&mode),
+        Some(Commands::Hook { event }) => hook::handler::run(&event),
+        Some(Commands::Log { session, count }) => cmd_log(session, count),
+        Some(Commands::Rollback { id, session, file, steps }) => cmd_rollback(id, session, file, steps),
+        Some(Commands::Context { session, verbose }) => cmd_context(&session, verbose),
+        Some(Commands::Diff { session, file }) => cmd_diff(&session, file),
+        Some(Commands::Status) => cmd_status(),
+        Some(Commands::Configure) => configure::run_configure(),
+        Some(Commands::Chat) => cmd_chat(),
+        Some(Commands::Sandbox { action }) => cmd_sandbox(action),
+        Some(Commands::Launch { args }) => cmd_launch(&args),
+        // No subcommand: launch Claude Code inside sandbox
+        None => cmd_launch(&cli.claude_args),
     };
 
     std::process::exit(exit_code);
@@ -507,6 +521,94 @@ Read the current railyard.yaml (if it exists) and help the user modify it based 
             eprintln!("  Run {} to generate a starter config.", "railyard init".cyan());
             1
         }
+    }
+}
+
+fn cmd_launch(args: &[String]) -> i32 {
+    let cwd = std::env::current_dir().unwrap_or_default();
+    let cwd_str = cwd.display().to_string();
+    let loaded_policy = policy::loader::load_policy_or_defaults(&cwd);
+
+    let cap = sandbox::detect::detect_sandbox();
+
+    match &cap {
+        sandbox::detect::SandboxCapability::None => {
+            eprintln!(
+                "  {} No OS-level sandbox available on this platform.",
+                "⚠".yellow().bold()
+            );
+            eprintln!("  Launching Claude Code without sandbox.");
+            eprintln!("  Hook-based protection (blocklist, fence, threat detection) is still active.");
+            eprintln!();
+
+            // Fall back to launching claude directly
+            let claude_bin = match find_claude() {
+                Ok(bin) => bin,
+                Err(e) => {
+                    eprintln!("  {} {}", "✗".red().bold(), e);
+                    return 1;
+                }
+            };
+            let status = std::process::Command::new(&claude_bin)
+                .args(args)
+                .status();
+            match status {
+                Ok(s) => s.code().unwrap_or(1),
+                Err(e) => {
+                    eprintln!("  {} Failed to launch claude: {}", "✗".red().bold(), e);
+                    1
+                }
+            }
+        }
+        _ => {
+            let sandbox_desc = sandbox::detect::describe_capability(&cap);
+            eprintln!("{}", "railyard".bold());
+            eprintln!();
+            eprintln!(
+                "  {} Launching Claude Code inside OS sandbox",
+                "🛡".bold()
+            );
+            eprintln!("  {} {}", "●".cyan(), sandbox_desc);
+            eprintln!("  {} Project: {}", "●".cyan(), cwd_str);
+            eprintln!("  {} Mode: {}", "●".cyan(), if loaded_policy.mode == "hardcore" {
+                "hardcore".red().bold().to_string()
+            } else {
+                "chill".green().bold().to_string()
+            });
+            eprintln!();
+            eprintln!(
+                "  Kernel-enforced: {}, {}, {} are inaccessible.",
+                "~/.ssh".red(),
+                "~/.aws".red(),
+                "~/.gnupg".red()
+            );
+            eprintln!();
+
+            match sandbox::profile::launch_sandboxed_claude(
+                &loaded_policy,
+                &cwd_str,
+                args,
+            ) {
+                Ok(code) => code,
+                Err(e) => {
+                    eprintln!("  {} {}", "✗".red().bold(), e);
+                    1
+                }
+            }
+        }
+    }
+}
+
+fn find_claude() -> Result<String, String> {
+    let output = std::process::Command::new("which")
+        .arg("claude")
+        .output()
+        .map_err(|e| format!("failed to find claude: {}", e))?;
+
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    } else {
+        Err("Claude Code CLI not found. Install: https://docs.anthropic.com/en/docs/claude-code".to_string())
     }
 }
 

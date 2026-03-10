@@ -1,47 +1,34 @@
 <p align="center">
   <h1 align="center">railyard</h1>
-  <p align="center"><strong>Guardrails for AI coding agents. Deterministic. On-device. Tamper-proof.</strong></p>
+  <p align="center"><strong>Use <code>--dangerously-skip-permissions</code> without the danger.</strong></p>
 </p>
 
 <p align="center">
   <a href="https://github.com/railyarddev/railyard/stargazers"><img src="https://img.shields.io/github/stars/railyarddev/railyard?style=flat" alt="GitHub stars"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/tests-136%20passed-brightgreen" alt="Tests">
-  <img src="https://img.shields.io/badge/pentest-71%25%20block%20rate-blue" alt="Pentest">
+  <img src="https://img.shields.io/badge/tests-141%20passed-brightgreen" alt="Tests">
   <img src="https://img.shields.io/badge/built%20with-Rust-orange.svg" alt="Built with Rust">
+  <a href="https://discord.gg/MyaUZSus"><img src="https://img.shields.io/badge/discord-join-7289da.svg" alt="Discord"></a>
 </p>
 
 <p align="center">
-  <a href="#what-is-railyard">What is it?</a> &middot;
+  <a href="#the-problem">The Problem</a> &middot;
   <a href="#install">Install</a> &middot;
   <a href="#how-it-works">How it works</a> &middot;
-  <a href="#protections">Protections</a> &middot;
+  <a href="#configure-it-your-way">Configure</a> &middot;
   <a href="SECURITY.md">Security</a> &middot;
   <a href="docs/ARCHITECTURE.md">Architecture</a> &middot;
-  <a href="#contributing">Contributing</a>
+  <a href="#contributing">Contributing</a> &middot;
+  <a href="https://discord.gg/MyaUZSus">Discord</a>
 </p>
 
 ---
 
-## What is Railyard?
+## The Problem
 
-A Rust binary that sits between Claude Code and your system. Every tool call — shell commands, file writes, file reads — passes through Railyard **before it touches the world**.
+You want Claude Code to be fully autonomous. You want to type a prompt and walk away. You want `--dangerously-skip-permissions`.
 
-```
-$ railyard install
-  ✓ Hooks registered with Claude Code
-  ✓ Mode: hardcore (29 rules)
-
-$ claude "clean up duplicate AWS resources"
-  ⛔ BLOCKED  terraform destroy
-     rule: terraform-destroy · railyard.yaml:14
-```
-
-**One command to install. Two modes: chill or hardcore. <2ms per decision. Fully on-device. The agent can't turn it off.**
-
-### Why does this exist?
-
-AI coding agents have shell access. They make mistakes — and prompt-based guardrails are just suggestions the model can ignore.
+But you've seen what happens:
 
 | When | What happened |
 |------|---------------|
@@ -49,22 +36,44 @@ AI coding agents have shell access. They make mistakes — and prompt-based guar
 | Feb 2026 | A background agent ran `drizzle-kit push --force`. **60 tables wiped.** |
 | 2025-26 | Agents ran `rm -rf ~/`, `git reset --hard`, `DROP DATABASE` on live systems. |
 
-These aren't hypothetical. Agents have been [documented bypassing their own safety rules](https://github.com/anthropics/claude-code/issues/29691). Railyard enforces rules **deterministically at the system level** — outside the LLM, where the model can't talk its way around them.
+So you're stuck clicking "Allow" on every shell command like it's a cookie banner. That's not productivity — that's babysitting.
+
+## The Solution
+
+Think of rail tracks in Japan. The Shinkansen goes 320 km/h — not because it has fewer safety systems, but because it has *more*. The rails, the signaling, the earthquake detection — all of it exists so the train can go **faster**, not slower.
+
+Railyard is the same idea. Install it once, and Claude Code runs at full speed with `--dangerously-skip-permissions` — because the rails keep it from going somewhere it shouldn't.
+
+```
+$ railyard install && claude --dangerously-skip-permissions
+
+  Agent runs: npm install && npm run build
+  ✅ (instant, no prompt)
+
+  Agent runs: git add -A && git commit -m "feat: add auth"
+  ✅ (instant, no prompt)
+
+  Agent runs: terraform destroy --auto-approve
+  ⛔ BLOCKED — "This was the command behind the DataTalks 1.9M row deletion."
+
+  Agent runs: curl -X POST https://api.example.com -d @secrets.json
+  ⚠️  APPROVE — "HTTP POST may exfiltrate data" [y/n]?
+```
+
+Normal work flows through instantly. Destructive commands are hard-blocked. Sensitive operations ask you once. That's it.
 
 ---
 
 ## Install
 
 ```bash
-# Recommended: curl | sh (downloads prebuilt binary)
-curl -fsSL https://raw.githubusercontent.com/railyarddev/railyard/main/install.sh | sh
-
-# Or: build from source
 cargo install --git https://github.com/railyarddev/railyard.git
 railyard install
 ```
 
-That's it. You're protected. Default mode is **hardcore** — 29 rules, path fencing, network policy, evasion detection, and session termination on evasion attempts.
+Two commands. You're done. Now use `claude --dangerously-skip-permissions` and stop babysitting.
+
+Default mode is **hardcore** — blocks destructive commands, fences sensitive paths, detects evasion attempts, sandboxes every shell command at the OS level.
 
 Want a lighter touch?
 
@@ -72,15 +81,45 @@ Want a lighter touch?
 railyard install --mode chill
 ```
 
-### Interactive setup
+Chill mode blocks the obvious stuff (`terraform destroy`, `rm -rf /`, `DROP TABLE`) and gets out of the way for everything else.
 
-```bash
-railyard configure
+---
+
+## How It Works
+
+When you run `railyard install`, three things happen:
+
+1. **Hooks** get registered in Claude Code's settings. Every tool call (Bash, Write, Edit, Read) passes through Railyard in <2ms.
+2. **Sandbox shell** gets set as Claude Code's shell. Every Bash command runs inside `sandbox-exec` (macOS) or `bwrap` (Linux) at the kernel level.
+3. **CLAUDE.md** gets updated so Claude knows about Railyard, knows how to use rollback, and knows not to try to disable it.
+
+You keep using `claude` exactly as before. Nothing changes in your workflow.
+
+### What happens to each command
+
+Every tool call hits three checks, in order:
+
+```
+Command comes in
+  │
+  ├─ Is it in the allowlist?          → ✅ Allow instantly
+  │
+  ├─ Is it in the blocklist?          → ⛔ Hard block (agent gets error message)
+  │
+  ├─ Is it in the approve list?       → ⚠️  Ask you once (y/n prompt)
+  │
+  └─ None of the above?              → ✅ Allow instantly
 ```
 
-Pick your mode, toggle individual protections on/off, configure fencing — all from an interactive terminal UI.
+Most commands — `npm install`, `cargo build`, `git commit`, file edits — don't match any rule. They flow through in <2ms with zero friction.
 
-To uninstall, run `railyard uninstall` from your terminal — a native OS confirmation dialog will appear. The agent cannot click it.
+### The three responses
+
+| Response | What the agent sees | What you see |
+|----------|-------------------|--------------|
+| **Allow** | Nothing — command runs normally | Nothing — you don't even know Railyard is there |
+| **Block** | Error message explaining why + what to do instead | Nothing (unless you check traces later) |
+| **Approve** | Pauses until you respond | A y/n prompt in your terminal |
 
 ---
 
@@ -88,365 +127,210 @@ To uninstall, run `railyard uninstall` from your terminal — a native OS confir
 
 | | **Chill** | **Hardcore** (default) |
 |---|---|---|
-| **Philosophy** | Just don't blow stuff up | Full lockdown |
-| **Destructive commands** | 13 rules (block/approve) | 13 rules (block/approve) |
-| **Self-protection** | 3 rules | 3 rules |
-| **Network policy** | — | 5 rules (curl\|sh, netcat, POST, wget, ssh) |
-| **Credential protection** | — | 2 rules (env dump, git config) |
-| **Evasion detection** | — | 6 rules (base64, eval, hex, symlinks, transform\|sh, interpreter obfuscation) |
-| **Path fencing** | Off | On (project dir only, denies ~/.ssh, ~/.aws, etc.) |
-| **Threat detection** | — | 3 tiers (pattern → behavioral → session kill) |
-| **OS sandbox** | — | Profile generation (sandbox-exec / Landlock) |
-| **Trace logging** | On | On |
-| **Snapshots** | On | On |
-| **Total rules** | 16 | 29 |
+| **Philosophy** | Don't blow stuff up | Full lockdown |
+| Destructive commands | Blocked | Blocked |
+| Self-protection | On | On |
+| Network policy | — | curl\|sh blocked, POST/wget/ssh need approval |
+| Credential protection | — | env dump, git config --global need approval |
+| Evasion detection | — | base64, hex, eval, rev\|sh, Python obfuscation |
+| Path fencing | — | Project dir only. ~/.ssh, ~/.aws, /etc denied |
+| Threat escalation | — | Suspicious patterns → warn → session kill |
+| OS sandbox | — | Every Bash command kernel-sandboxed |
+| Trace logging | On | On |
+| Snapshots + rollback | On | On |
 
-### Chill vs Hardcore — What Actually Happens
+**Chill** = for developers who trust their agent but want a safety net for the catastrophic stuff.
 
-Here's the same agent session in each mode. Same commands, different outcomes.
-
-**Destructive commands — blocked in both modes:**
-
-```
-$ claude "clean up old infrastructure"
-
-  Agent runs: terraform destroy --auto-approve
-  ⛔ BLOCKED  terraform-destroy
-     "Blocked: matches 'terraform destroy'. This was the command behind
-      the DataTalks 1.9M row deletion."
-
-  Agent runs: rm -rf ~/old-project
-  ⛔ BLOCKED  rm-rf-critical
-     "Blocked: recursive deletion of home directory path"
-```
-
-**Network access — chill allows it, hardcore gates it:**
-
-```
-# ── Chill mode ──
-  Agent runs: curl -X POST https://api.example.com/deploy -d '{"env":"prod"}'
-  ✅ ALLOWED
-
-  Agent runs: wget https://sketchy-cdn.com/install.sh
-  ✅ ALLOWED
-
-# ── Hardcore mode ──
-  Agent runs: curl -X POST https://api.example.com/deploy -d '{"env":"prod"}'
-  ⚠️  APPROVE  curl-post
-     "HTTP POST requires human approval"
-     [y/n]?
-
-  Agent runs: wget https://sketchy-cdn.com/install.sh
-  ⚠️  APPROVE  wget
-     "wget requires human approval"
-     [y/n]?
-```
-
-**Credential access — chill ignores it, hardcore blocks it:**
-
-```
-# ── Chill mode ──
-  Agent runs: cat ~/.ssh/id_ed25519
-  ✅ ALLOWED  (no path fence)
-
-  Agent runs: env | grep SECRET
-  ✅ ALLOWED
-
-# ── Hardcore mode ──
-  Agent runs: cat ~/.ssh/id_ed25519
-  ⛔ BLOCKED  Path Fence
-     "Path Fence: '~/.ssh/id_ed25519' is in denied path '~/.ssh'"
-
-  Agent runs: env | grep SECRET
-  ⚠️  APPROVE  env-credential-dump
-     "Environment dump may expose secrets — requires approval"
-     [y/n]?
-```
-
-**Evasion attempts — chill blocks the payload, hardcore kills the session:**
-
-```
-# ── Chill mode ──
-  Agent runs: echo dGVycmFmb3JtIGRlc3Ryb3k= | base64 -d | sh
-  ⛔ BLOCKED  terraform-destroy  (decoded via normalization)
-  Session continues normally.
-
-  Agent runs: rev <<< 'yortsed mrofarret' | sh
-  ✅ ALLOWED  (no evasion rules, no shape detection)
-
-# ── Hardcore mode ──
-  Agent runs: echo dGVycmFmb3JtIGRlc3Ryb3k= | base64 -d | sh
-  ⛔ BLOCKED  base64-shell-exec
-  Session enters heightened state (watching for retries).
-
-  Agent runs: rev <<< 'yortsed mrofarret' | sh
-  ⛔ BLOCKED + SESSION KILLED  (Tier 1: transform-pipe-to-shell)
-
-  ⚠️  RAILYARD: SESSION TERMINATED
-     Tier 1 evasion detected: transform-pipe-to-shell
-     Review: railyard log --session abc123
-```
-
-**File access outside project — chill allows it, hardcore fences it:**
-
-```
-# ── Chill mode ──
-  Agent runs: cat /etc/hosts
-  ✅ ALLOWED
-
-  Agent runs: cat /usr/local/etc/nginx/nginx.conf
-  ✅ ALLOWED
-
-# ── Hardcore mode ──
-  Agent runs: cat /etc/hosts
-  ⛔ BLOCKED  Path Fence
-     "Path Fence: '/etc/hosts' is in denied path '/etc'"
-
-  Agent runs: cat /usr/local/etc/nginx/nginx.conf
-  ⛔ BLOCKED  Path Fence
-     "Path Fence: '/usr/local/etc/nginx/nginx.conf' is outside project directory"
-```
-
-**TL;DR:** Chill mode stops you from blowing up production. Hardcore mode stops a compromised agent from doing anything creative.
+**Hardcore** = for production environments, shared machines, or when you're running agents unattended overnight.
 
 ---
 
-## How It Works
+## Configure It Your Way
 
-### Defense in Depth — 4 Layers
+Railyard is not opinionated about *your* workflow. The defaults block things that no sane developer would do by accident. Beyond that, you customize.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  Layer 1: Blocklist + Evasion Detection                        │
-│  String matching + normalization (base64, variables, hex, etc.)│
-│  Catches: literal commands + lazy evasion attempts              │
-├─────────────────────────────────────────────────────────────────┤
-│  Layer 2: Shape Detection (Tier 1)                              │
-│  Detects evasion patterns: rev|sh, tr|sh, python -c chr(),    │
-│  printf hex, base64|base64. Immediate session termination.      │
-├─────────────────────────────────────────────────────────────────┤
-│  Layer 3: Behavioral Analysis (Tier 2/3)                        │
-│  Tracks block history. Detects retry attempts with different   │
-│  syntax. Escalating warnings → session termination.             │
-├─────────────────────────────────────────────────────────────────┤
-│  Layer 4: OS-Level Sandbox                                      │
-│  sandbox-exec (macOS) / Landlock (Linux). Kernel-enforced.     │
-│  Bypass-proof. No shell trick can circumvent syscall checks.   │
-└─────────────────────────────────────────────────────────────────┘
-```
+### Ask Claude to configure it
 
-### Interrupt the Human
-
-When Railyard detects evasion behavior, it doesn't just block one command — it **terminates the entire Claude Code session** and leaves a forensic trace.
+The easiest way — just ask Claude Code:
 
 ```
-⚠️  RAILYARD: SESSION TERMINATED
-
-  Tier 1 evasion detected: transform-pipe-to-shell
-  Command: rev <<< 'yortsed mrofarret' | sh
-  Session: abc123
-
-  Review: railyard log --session abc123
+You: "Help me set up railyard for this project. I need to allow terraform plan
+      but block terraform apply without approval."
 ```
 
-The agent cannot retry, iterate, or try a different bypass — because it no longer exists. The human has to manually restart, review the trace, and decide whether to continue.
+Claude will read your `railyard.yaml`, propose changes, and you approve or reject each edit in the standard permission prompt. Claude can suggest, but only you can accept.
 
-**Threat tiers:**
-
-| Tier | Trigger | Action |
-|------|---------|--------|
-| **1** | `rev\|sh`, `base64\|base64`, `python -c chr()`, `printf \x` | Immediate session kill |
-| **2** | Variable-then-exec, `eval $var`, multi-variable concat | Warning → kill on repeat |
-| **3** | Retried blocked command with different syntax | Behavioral detection → kill |
-
-### OS-Level Sandboxing
-
-Generate kernel-enforced sandbox profiles from your `railyard.yaml`:
+### Or edit the config directly
 
 ```bash
-railyard sandbox generate   # Creates .railyard/sandbox.sb (macOS) or bwrap script (Linux)
-railyard sandbox run -- npm test   # Run command inside sandbox
-railyard sandbox status     # Show available sandbox technology
+railyard init    # Creates railyard.yaml in your project
 ```
 
-The OS sandbox makes **every pentest bypass irrelevant**. Variable indirection, base64, hex encoding, Python chr() — none of it matters when the kernel checks actual syscalls, not command strings.
+```yaml
+# railyard.yaml
+version: 1
+
+blocklist:
+  - name: terraform-destroy
+    tool: Bash
+    pattern: "terraform\\s+(destroy|apply\\s+.*-auto-approve)"
+    action: block
+    message: "Blocked: terraform destroy is destructive"
+
+approve:
+  - name: terraform-apply
+    tool: Bash
+    pattern: "terraform\\s+apply"
+    action: approve
+    message: "terraform apply needs human sign-off"
+
+allowlist:
+  - name: terraform-plan
+    tool: Bash
+    pattern: "terraform\\s+plan"
+    action: allow
+
+fence:
+  enabled: true
+  denied_paths:
+    - "~/.ssh"
+    - "~/.aws"
+    - "~/.gnupg"
+```
+
+Changes take effect immediately — no restart needed. The policy file walks up directories like `.gitignore`, so you can have org-wide defaults and per-project overrides.
+
+### Or use the interactive setup
+
+```bash
+railyard configure    # Terminal UI to toggle protections
+railyard chat         # Launch Claude Code as a policy assistant
+```
 
 ---
 
-## Protections
+## What Gets Blocked (Default Rules)
 
-### 1. Command Blocking — Stops Real Disasters
+### Destructive commands — blocked in both modes
 
-Active in both modes. Zero config.
-
-| Rule | What it catches | Why |
-|------|----------------|-----|
-| `terraform-destroy` | `terraform destroy`, `apply -auto-approve` | DataTalks 1.9M row incident |
-| `rm-rf-critical` | `rm -rf /`, `~/`, `$HOME` | Home directory deletion |
-| `sql-drop` | `DROP TABLE`, `DATABASE`, `SCHEMA` | Production database wipes |
+| Rule | What it catches | Why it exists |
+|------|----------------|---------------|
+| `terraform-destroy` | `terraform destroy`, `apply -auto-approve` | 1.9M row deletion incident |
+| `rm-rf-critical` | `rm -rf /`, `~/`, `$HOME` | Home directory wipes |
+| `sql-drop` | `DROP TABLE`, `DATABASE`, `SCHEMA` | Production database loss |
 | `git-force-push` | `git push --force` | Overwrites remote history |
 | `git-reset-hard` | `git reset --hard` | Destroys uncommitted work |
-| `git-clean-force` | `git clean -f` | Removes untracked files |
 | `drizzle-force` | `drizzle-kit push --force` | 60-table drop incident |
 | `disk-format` | `mkfs`, `dd of=/dev/` | Disk destruction |
-| `k8s-delete-ns` | `kubectl delete namespace` | K8s namespace deletion |
+| `k8s-delete-ns` | `kubectl delete namespace` | Namespace deletion |
 | `aws-s3-rm-recursive` | `aws s3 rm --recursive` | S3 data loss |
-| `docker-system-prune` | `docker system prune -a` | Removes all images |
-| `chmod-777-recursive` | `chmod -R 777 /` | Security disaster |
-| `npm-publish` | `npm publish` | Requires human approval |
 
-### 2. Evasion Detection — Catches Agent Bypass Attempts
+### Evasion detection — hardcore only
+
+Agents have been [documented trying to bypass safety rules](https://github.com/anthropics/claude-code/issues/29691). Railyard normalizes commands before matching:
 
 ```
 Direct:     terraform destroy                           → ⛔ blocked
 Base64:     echo dGVycmFmb3Jt... | base64 -d | sh      → decoded    → ⛔ blocked
-Double b64: echo ZEdW... | base64 -d | base64 -d | sh  → recursive  → ⛔ blocked + SESSION KILLED
 Variable:   CMD="terraform destroy"; $CMD               → expanded   → ⛔ blocked
 Shell wrap: sh -c "terraform destroy"                   → unwrapped  → ⛔ blocked
 Eval:       eval "ter""raform destroy"                  → joined     → ⛔ blocked
 Hex:        $'\x74\x65\x72\x72...'                      → decoded    → ⛔ blocked
-Rev pipe:   rev <<< 'yortsed mrofarret' | sh            → shape      → ⛔ blocked + SESSION KILLED
-ROT13:      tr 'a-z' 'n-za-m' <<< '...' | sh           → shape      → ⛔ blocked + SESSION KILLED
-Python:     python3 -c "...b64decode..." / "...chr(..." → detected   → ⛔ blocked + SESSION KILLED
+Rev pipe:   rev <<< 'yortsed mrofarret' | sh            → shape      → ⛔ SESSION KILLED
+Python:     python3 -c "...b64decode..."                → detected   → ⛔ SESSION KILLED
 ```
 
-### 3. Filesystem Fencing (Hardcore)
+### Self-protection — both modes
 
-```
-  Your project directory     ✅ Claude Code can read/write here
-  ~/.ssh/                    ⛔ DENIED
-  ~/.aws/                    ⛔ DENIED
-  ~/.gnupg/                  ⛔ DENIED
-  ~/.claude/                 ⛔ DENIED
-  ~/.config/gcloud/          ⛔ DENIED
-  /etc/                      ⛔ DENIED
-```
+The agent cannot disable Railyard:
 
-All paths are canonicalized — `../` traversal and symlink escapes are caught.
+- `railyard uninstall` → blocked
+- Editing `~/.claude/settings.json` → blocked
+- Removing the railyard binary → blocked
+- Editing `railyard.yaml` → requires your approval
+- Changing modes (`railyard install --mode chill`) → requires your approval
+- Actually uninstalling → requires a native OS dialog click (an AI can't click GUI buttons)
 
-### 4. Network Policy (Hardcore)
+---
 
-| Rule | Action |
-|------|--------|
-| `curl \| sh` / `curl \| bash` | Block |
-| `nc` / `netcat` / `ncat` | Block |
-| `curl -X POST` / `curl --data` | Approve (human sign-off) |
-| `wget` | Approve |
-| `ssh` / `scp` / `rsync` | Approve |
+## Recovery
 
-### 5. Snapshots — Cursor-Style Checkpoints
-
-Every file write/edit is backed up before the change. Undo one edit, N edits, or an entire session.
+Every file write is snapshotted. If something goes wrong:
 
 ```bash
-railyard rollback --steps 1 --session abc123     # Undo last edit
-railyard rollback --session abc123               # Undo entire session
-railyard context --session abc123 --verbose      # Rich context for Claude to reason about
+railyard log                                    # List sessions
+railyard diff --session <id>                    # See what changed
+railyard rollback --session <id> --steps 1      # Undo last edit
+railyard rollback --session <id> --steps 5      # Undo last 5 edits
+railyard rollback --session <id> --file path    # Restore one file
+railyard rollback --session <id>                # Undo entire session
 ```
 
-### 6. Self-Protection — The Agent Can't Turn It Off
-
-Three layers prevent the agent from disabling Railyard:
-
-1. **Hook Blocklist** — `railyard uninstall` is intercepted and blocked
-2. **Terminal Check** — Uninstall checks if stdin is an interactive terminal. Agents pipe stdin → rejected.
-3. **Native OS Dialog** — A native confirmation dialog appears (AppleScript/zenity/kdialog). Agents can't click GUI buttons.
+Or ask Claude: *"Something went wrong, can you check what changed and roll it back?"* — Claude can run `railyard context --session <id> --verbose` to understand what happened and suggest the right rollback command.
 
 ---
 
 ## CLI Reference
 
 ```
-railyard install [--mode chill|hardcore]   Register hooks with Claude Code
-railyard uninstall                         Remove hooks (requires OS confirmation)
-railyard init [--mode chill|hardcore]      Generate starter railyard.yaml
-railyard configure                         Interactive protection setup
-railyard status                            Show current protection status
-railyard chat                              Policy builder via Claude Code
+railyard install [--mode chill|hardcore]   Set up protection (default: hardcore)
+railyard uninstall                         Remove protection (requires GUI confirmation)
+railyard status                            Show what's active
+railyard init [--mode chill|hardcore]      Create railyard.yaml in current directory
+railyard configure                         Interactive setup
+railyard chat                              Policy assistant via Claude Code
 
-railyard log                               List sessions with traces
-railyard log --session <id>                View traces for a session
+railyard log [--session <id>]              View traces
+railyard rollback --session <id> [opts]    Undo changes
+railyard context --session <id> [-v]       Session summary (for Claude to read)
+railyard diff --session <id> [--file]      Show diffs
 
-railyard rollback --session <id>                     List snapshots
-railyard rollback --session <id> --steps 3           Undo last 3 edits
-railyard rollback --session <id> --id <snap>         Restore specific snapshot
-railyard rollback --session <id> --file path         Restore specific file
-
-railyard context --session <id> [--verbose]   Session context for Claude Code
-railyard diff --session <id> [--file path]    Show diffs from snapshots
-
-railyard sandbox generate                  Generate OS sandbox profile
-railyard sandbox run -- <command>          Run command in OS sandbox
-railyard sandbox status                    Show sandbox availability
+railyard sandbox status                    Check OS sandbox availability
+railyard sandbox generate                  Write sandbox profiles
+railyard sandbox run -- <command>          Run one command sandboxed
 ```
 
 ---
 
 ## Security
 
-Railyard ships with a comprehensive security analysis:
-
-- **[SECURITY.md](SECURITY.md)** — Formal threat model (STRIDE), security architecture, provable guarantees, attack surface analysis, compliance mapping (SOC 2, NIST CSF, OWASP LLM Top 10)
-- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — Technical deep dive into every module, data flow, and integration points
-- **[PENTEST-REPORT.md](PENTEST-REPORT.md)** — 3 rounds of adversarial red teaming. 28 attack vectors. 71% block rate. Complete bypass taxonomy.
-
-### Pentest Results (3 Rounds)
-
-| Metric | Round 1 | Round 2 | Round 3 |
-|--------|---------|---------|---------|
-| Vectors tested | 13 | 28 | 28 |
-| Blocked | 2 | 14 | 20 |
-| Block rate | 15% | 50% | **71%** |
-| Bypass categories | 3 | 3 | **1** |
-
-The only remaining bypasses are shell-level runtime string construction (4 vectors) — which require OS-level sandboxing to defeat.
+- **[SECURITY.md](SECURITY.md)** — Threat model, architecture, what it does and doesn't protect against
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — Technical deep dive into every module
+- **[PENTEST-REPORT.md](PENTEST-REPORT.md)** — 3 rounds of adversarial red teaming, 28 attack vectors
 
 ---
 
 ## Testing
 
 ```bash
-# All tests: 73 unit + 36 attack simulation + 15 rollback + 12 threat detection = 136
-cargo test
-
-# Attack simulations only
-cargo test --test attack_simulation
-
-# Rollback scenarios
-cargo test --test rollback_scenarios
+cargo test    # 141 tests: 78 unit + 36 attack sim + 15 rollback + 12 threat detection
 ```
 
-Test coverage includes:
-- **Real incident reproductions** — terraform destroy, drizzle-kit force push, rm -rf ~/, DROP DATABASE
-- **Evasion attempts** — base64, double base64, variable expansion, shell wrappers, eval concat, backtick substitution, rev|sh, ROT13, Python chr(), Ruby system()
-- **Threat detection** — Tier 1/2/3 classification, behavioral evasion, keyword extraction
-- **Sandbox** — Profile generation for macOS and Linux
-- **Self-protection** — Uninstall blocking, settings protection, binary removal prevention
-- **Rollback** — Multi-edit undo, session rollback, digital twin scenarios, context generation
+Test suite includes real incident reproductions, evasion attempts, threat detection scenarios, sandbox profile generation, self-protection verification, and rollback workflows.
 
 ---
 
 ## Contributing
 
-Railyard is early. There's a lot to build and we'd love your help.
+Railyard is early. We'd love your help.
 
 **Good first issues:**
-- Add new default blocklist rules for common footguns
+- Add new blocklist rules for common footguns
 - Test on Windows and Linux
-- Improve evasion detection (new encoding schemes, new shell tricks)
+- Improve evasion detection
 
 **Bigger projects:**
 - Support for Cursor, Windsurf, Codex, and other agents
-- `railyard watch` — live TUI dashboard for active sessions
+- `railyard watch` — live TUI dashboard
 - LLM-as-judge for non-deterministic evasion detection
-- Post-execution binary audit via dtrace/fanotify
-- Policy inheritance (org-wide defaults + project overrides)
+- Policy inheritance (org defaults + project overrides)
 
 ```bash
 git clone https://github.com/railyarddev/railyard.git
-cd railyard
-cargo test
+cd railyard && cargo test
 ```
+
+Join the [Discord](https://discord.gg/MyaUZSus) to discuss ideas.
 
 ---
 

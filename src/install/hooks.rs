@@ -15,6 +15,15 @@ fn railyard_binary_path() -> String {
         .unwrap_or_else(|_| "railyard".to_string())
 }
 
+/// Get the path to the railyard-shell binary (sibling of the railyard binary).
+fn railyard_shell_path() -> String {
+    std::env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(|dir| dir.join("railyard-shell")))
+        .map(|p| p.display().to_string())
+        .unwrap_or_else(|| "railyard-shell".to_string())
+}
+
 /// The CLAUDE.md content that teaches Claude about Railyard.
 const CLAUDE_MD_CONTENT: &str = include_str!("../../defaults/CLAUDE.md");
 
@@ -72,16 +81,41 @@ pub fn install_hooks() -> Result<String, String> {
     hooks_obj.insert("PostToolUse".to_string(), post_hook);
     hooks_obj.insert("SessionStart".to_string(), session_hook);
 
+    // Set CLAUDE_CODE_SHELL to railyard-shell for OS-level sandboxing.
+    // This makes every Bash tool call run through our sandboxed shell.
+    let shell_binary = railyard_shell_path();
+    if std::path::Path::new(&shell_binary).exists() {
+        let env_obj = settings
+            .as_object_mut()
+            .unwrap()
+            .entry("env")
+            .or_insert_with(|| json!({}));
+
+        if let Some(env_map) = env_obj.as_object_mut() {
+            env_map.insert(
+                "CLAUDE_CODE_SHELL".to_string(),
+                json!(shell_binary),
+            );
+        }
+    }
+
     write_settings(&settings_path, &settings)?;
 
     // Inject CLAUDE.md so Claude knows about Railyard
     let claude_md_msg = inject_claude_md()?;
 
+    let sandbox_msg = if std::path::Path::new(&shell_binary).exists() {
+        format!("\n  ✓ OS sandbox shell: {}", shell_binary)
+    } else {
+        "\n  ● OS sandbox: railyard-shell not found (run cargo install to build)".to_string()
+    };
+
     Ok(format!(
-        "Installed railyard hooks in {}\n  {} {}",
+        "Installed railyard hooks in {}\n  {} {}{}",
         settings_path.display(),
         "✓",
-        claude_md_msg
+        claude_md_msg,
+        sandbox_msg
     ))
 }
 
@@ -178,6 +212,14 @@ pub fn uninstall_hooks() -> Result<String, String> {
                     }
                 }
             }
+        }
+    }
+
+    // Remove CLAUDE_CODE_SHELL from env section
+    if let Some(env_obj) = settings.get_mut("env").and_then(|e| e.as_object_mut()) {
+        env_obj.remove("CLAUDE_CODE_SHELL");
+        if env_obj.is_empty() {
+            settings.as_object_mut().unwrap().remove("env");
         }
     }
 
