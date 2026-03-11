@@ -59,15 +59,15 @@ jobs:
       - name: Package tarball
         run: |
           TAG="${GITHUB_REF_NAME}"
-          TARBALL="railyard-${TAG}-${{ matrix.target }}.tar.gz"
-          cp "target/${{ matrix.target }}/release/railyard" railyard
-          tar -czf "$TARBALL" railyard
+          TARBALL="railroad-${TAG}-${{ matrix.target }}.tar.gz"
+          cp "target/${{ matrix.target }}/release/railroad" railroad
+          tar -czf "$TARBALL" railroad
           echo "TARBALL=$TARBALL" >> "$GITHUB_ENV"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: railyard-${{ matrix.target }}
+          name: railroad-${{ matrix.target }}
           path: ${{ env.TARBALL }}
 
   release:

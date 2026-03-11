@@ -1,9 +1,9 @@
 {
-  "name": "railyard",
+  "name": "railroad",
   "version": "0.1.0",
   "description": "Runtime guardrails for AI agents — protect your system from destructive commands",
   "bin": {
-    "railyard": "./bin/railyard"
+    "railroad": "./bin/railroad"
   },
   "scripts": {
     "postinstall": "node install.js"
@@ -18,13 +18,13 @@
     "runtime",
     "security"
   ],
-  "author": "Railyard <hello@railyard.dev>",
+  "author": "Railroad <hello@railroad.dev>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/railyarddev/railyard"
+    "url": "https://github.com/railroaddev/railroad"
   },
-  "homepage": "https://github.com/railyarddev/railyard",
+  "homepage": "https://github.com/railroaddev/railroad",
   "os": [
     "darwin",
     "linux"

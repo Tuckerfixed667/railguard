@@ -2,10 +2,10 @@ use clap::{Parser, Subcommand};
 use colored::Colorize;
 use std::path::Path;
 
-use railyard::{configure, coord, context, dashboard, hook, install, policy, replay, snapshot, trace};
+use railroad::{configure, coord, context, dashboard, hook, install, policy, replay, snapshot, trace};
 
 #[derive(Parser)]
-#[command(name = "railyard", version, about = "A secure runtime for AI coding agents.")]
+#[command(name = "railroad", version, about = "A secure runtime for AI coding agents.")]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -13,13 +13,13 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Install railyard hooks into Claude Code
+    /// Install railroad hooks into Claude Code
     Install,
 
-    /// Remove railyard hooks from Claude Code
+    /// Remove railroad hooks from Claude Code
     Uninstall,
 
-    /// Generate a starter railyard.yaml in the current directory
+    /// Generate a starter railroad.yaml in the current directory
     Init,
 
     /// Internal: handle a hook event (reads JSON from stdin)
@@ -74,7 +74,7 @@ enum Commands {
         file: Option<String>,
     },
 
-    /// Show railyard status
+    /// Show railroad status
     Status,
 
     /// Interactive protection configuration
@@ -143,7 +143,7 @@ fn main() {
 fn cmd_install() -> i32 {
     use dialoguer::{theme::ColorfulTheme, Confirm};
 
-    println!("{}", "railyard".bold());
+    println!("{}", "railroad".bold());
     println!();
 
     match install::hooks::install_hooks() {
@@ -154,9 +154,9 @@ fn cmd_install() -> i32 {
             println!("  {} {}", "✓".green().bold(), msg);
             println!("  {} {} default rules active", "✓".green().bold(), rule_count);
 
-            // Prompt to enable bypass permissions (Railyard replaces it)
+            // Prompt to enable bypass permissions (Railroad replaces it)
             println!();
-            println!("  {} We recommend enabling skip permissions — Railyard replaces", "→".cyan().bold());
+            println!("  {} We recommend enabling skip permissions — Railroad replaces", "→".cyan().bold());
             println!("    Claude Code's permission system with its own guardrails,");
             println!("    so you won't need to approve every command manually.");
             println!();
@@ -169,7 +169,7 @@ fn cmd_install() -> i32 {
             if enable_bypass {
                 match install::hooks::enable_bypass_permissions() {
                     Ok(_) => {
-                        println!("  {} Skip permissions enabled — Railyard handles safety now", "✓".green().bold());
+                        println!("  {} Skip permissions enabled — Railroad handles safety now", "✓".green().bold());
                     }
                     Err(e) => {
                         eprintln!("  {} Failed to enable bypass mode: {}", "✗".yellow().bold(), e);
@@ -178,7 +178,7 @@ fn cmd_install() -> i32 {
             }
 
             println!();
-            println!("  Customize with: {}", "railyard init".cyan());
+            println!("  Customize with: {}", "railroad init".cyan());
             0
         }
         Err(e) => {
@@ -202,24 +202,24 @@ fn cmd_uninstall() -> i32 {
 }
 
 fn cmd_init() -> i32 {
-    let policy_path = Path::new("railyard.yaml");
+    let policy_path = Path::new("railroad.yaml");
     if policy_path.exists() {
-        eprintln!("  {} railyard.yaml already exists", "✗".red().bold());
+        eprintln!("  {} railroad.yaml already exists", "✗".red().bold());
         return 1;
     }
 
-    let default_yaml = include_str!("../defaults/railyard.yaml");
+    let default_yaml = include_str!("../defaults/railroad.yaml");
 
     match std::fs::write(policy_path, default_yaml) {
         Ok(_) => {
-            println!("  {} Created railyard.yaml", "✓".green().bold());
+            println!("  {} Created railroad.yaml", "✓".green().bold());
             println!();
             println!("  Edit this file to customize your policy.");
-            println!("  Run {} to configure interactively.", "railyard chat".cyan());
+            println!("  Run {} to configure interactively.", "railroad chat".cyan());
             0
         }
         Err(e) => {
-            eprintln!("  {} Failed to create railyard.yaml: {}", "✗".red().bold(), e);
+            eprintln!("  {} Failed to create railroad.yaml: {}", "✗".red().bold(), e);
             1
         }
     }
@@ -250,14 +250,14 @@ fn cmd_log(session: Option<String>, count: usize) -> i32 {
             Ok(sessions) => {
                 if sessions.is_empty() {
                     println!("  No trace sessions found.");
-                    println!("  Traces are created automatically when Claude Code runs with railyard.");
+                    println!("  Traces are created automatically when Claude Code runs with railroad.");
                 } else {
                     println!("  {} Sessions with traces:\n", "●".cyan());
                     for s in &sessions {
                         println!("    {}", s);
                     }
                     println!();
-                    println!("  View a session: {}", "railyard log --session <id>".cyan());
+                    println!("  View a session: {}", "railroad log --session <id>".cyan());
                 }
                 0
             }
@@ -303,8 +303,8 @@ fn cmd_rollback(
                         println!("{}", line);
                     }
                     println!();
-                    println!("  Rollback: {}", "railyard rollback --id <id> --session <session>".cyan());
-                    println!("  Undo last N: {}", "railyard rollback --steps 3 --session <session>".cyan());
+                    println!("  Rollback: {}", "railroad rollback --id <id> --session <session>".cyan());
+                    println!("  Undo last N: {}", "railroad rollback --steps 3 --session <session>".cyan());
                 }
                 0
             }
@@ -392,12 +392,12 @@ fn cmd_diff(session_id: &str, file: Option<String>) -> i32 {
 }
 
 fn cmd_status() -> i32 {
-    println!("{}", "railyard status".bold());
+    println!("{}", "railroad status".bold());
     println!();
 
     match install::hooks::check_installed() {
         Ok(true) => println!("  {} Hooks installed in Claude Code", "✓".green().bold()),
-        Ok(false) => println!("  {} Hooks not installed (run {})", "✗".yellow().bold(), "railyard install".cyan()),
+        Ok(false) => println!("  {} Hooks not installed (run {})", "✗".yellow().bold(), "railroad install".cyan()),
         Err(e) => println!("  {} Could not check hooks: {}", "?".yellow().bold(), e),
     }
 
@@ -415,7 +415,7 @@ fn cmd_status() -> i32 {
             println!("       snapshot: {}", if loaded_policy.snapshot.enabled { "on" } else { "off" });
         }
         None => {
-            println!("  {} No railyard.yaml found (using defaults)", "●".cyan().bold());
+            println!("  {} No railroad.yaml found (using defaults)", "●".cyan().bold());
             println!("       {} default rules active", loaded_policy.blocklist.len());
         }
     }
@@ -432,7 +432,7 @@ fn cmd_locks() -> i32 {
         return 0;
     }
 
-    println!("{}", "railyard locks".bold());
+    println!("{}", "railroad locks".bold());
     println!();
 
     // Group by session
@@ -471,7 +471,7 @@ fn cmd_locks() -> i32 {
 }
 
 fn cmd_chat() -> i32 {
-    println!("{}", "railyard chat".bold());
+    println!("{}", "railroad chat".bold());
     println!();
     println!("  Launching interactive policy configuration...");
     println!();
@@ -482,15 +482,15 @@ fn cmd_chat() -> i32 {
 
     match claude_check {
         Ok(output) if output.status.success() => {
-            let prompt = r#"You are the Railyard policy configuration assistant. Help the user create or modify their railyard.yaml policy file.
+            let prompt = r#"You are the Railroad policy configuration assistant. Help the user create or modify their railroad.yaml policy file.
 
-The user's current working directory has (or will have) a railyard.yaml file. Help them:
+The user's current working directory has (or will have) a railroad.yaml file. Help them:
 1. Add blocklist rules to prevent dangerous commands
 2. Add approve rules for commands that need human sign-off
 3. Configure path fencing (allowed/denied directories)
 4. Configure trace and snapshot settings
 
-The railyard.yaml format is:
+The railroad.yaml format is:
 ```yaml
 version: 1
 blocklist:
@@ -518,14 +518,14 @@ fence:
     - "~/.aws"
 trace:
   enabled: true
-  directory: .railyard/traces
+  directory: .railroad/traces
 snapshot:
   enabled: true
   tools: [Write, Edit]
-  directory: .railyard/snapshots
+  directory: .railroad/snapshots
 ```
 
-Read the current railyard.yaml (if it exists) and help the user modify it based on their needs. Always write valid YAML with valid regex patterns."#;
+Read the current railroad.yaml (if it exists) and help the user modify it based on their needs. Always write valid YAML with valid regex patterns."#;
 
             let status = std::process::Command::new("claude")
                 .arg("--print")
@@ -545,8 +545,8 @@ Read the current railyard.yaml (if it exists) and help the user modify it based 
             eprintln!("  {} Claude Code CLI not found.", "✗".red().bold());
             eprintln!("  Install it: https://docs.anthropic.com/en/docs/claude-code");
             eprintln!();
-            eprintln!("  Alternatively, edit railyard.yaml manually.");
-            eprintln!("  Run {} to generate a starter config.", "railyard init".cyan());
+            eprintln!("  Alternatively, edit railroad.yaml manually.");
+            eprintln!("  Run {} to generate a starter config.", "railroad init".cyan());
             1
         }
     }

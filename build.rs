@@ -12,7 +12,7 @@ fn main() {
         .map(|s| s.trim().to_string())
         .unwrap_or_else(|| "unknown".to_string());
 
-    println!("cargo:rustc-env=RAILYARD_GIT_HASH={}", hash);
+    println!("cargo:rustc-env=RAILROAD_GIT_HASH={}", hash);
     println!("cargo:rerun-if-changed=.git/HEAD");
     println!("cargo:rerun-if-changed=.git/refs/heads/main");
 }

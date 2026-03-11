@@ -1,6 +1,6 @@
 use crate::types::Rule;
 
-/// Default blocklist rules. One set for everyone, fully customizable via railyard.yaml.
+/// Default blocklist rules. One set for everyone, fully customizable via railroad.yaml.
 ///
 /// Philosophy:
 /// - Destructive commands → block (agent finds another way, you stay hands-off)
@@ -293,46 +293,46 @@ pub fn default_blocklist() -> Vec<Rule> {
         },
         // ── Self-protection — always block (agent can't disable guardrails) ──
         Rule {
-            name: "railyard-uninstall".to_string(),
+            name: "railroad-uninstall".to_string(),
             tool: "Bash".to_string(),
-            pattern: r"railyard\s+uninstall".to_string(),
+            pattern: r"railroad\s+uninstall".to_string(),
             action: "block".to_string(),
-            message: Some("Blocked: agents cannot uninstall Railyard".to_string()),
+            message: Some("Blocked: agents cannot uninstall Railroad".to_string()),
         },
         Rule {
-            name: "railyard-install".to_string(),
+            name: "railroad-install".to_string(),
             tool: "Bash".to_string(),
-            pattern: r"railyard\s+install".to_string(),
+            pattern: r"railroad\s+install".to_string(),
             action: "approve".to_string(),
-            message: Some("Reinstalling Railyard requires human approval".to_string()),
+            message: Some("Reinstalling Railroad requires human approval".to_string()),
         },
         Rule {
-            name: "railyard-config-edit".to_string(),
+            name: "railroad-config-edit".to_string(),
             tool: "Write".to_string(),
-            pattern: r"railyard\.yaml".to_string(),
+            pattern: r"railroad\.yaml".to_string(),
             action: "approve".to_string(),
-            message: Some("Writing Railyard policy requires human approval".to_string()),
+            message: Some("Writing Railroad policy requires human approval".to_string()),
         },
         Rule {
-            name: "railyard-config-edit-2".to_string(),
+            name: "railroad-config-edit-2".to_string(),
             tool: "Edit".to_string(),
-            pattern: r"railyard\.yaml".to_string(),
+            pattern: r"railroad\.yaml".to_string(),
             action: "approve".to_string(),
-            message: Some("Editing Railyard policy requires human approval".to_string()),
+            message: Some("Editing Railroad policy requires human approval".to_string()),
         },
         Rule {
-            name: "railyard-tamper-settings".to_string(),
+            name: "railroad-tamper-settings".to_string(),
             tool: "Bash".to_string(),
             pattern: r"\.claude/settings\.json".to_string(),
             action: "block".to_string(),
             message: Some("Blocked: agents cannot modify Claude Code hook settings".to_string()),
         },
         Rule {
-            name: "railyard-remove-binary".to_string(),
+            name: "railroad-remove-binary".to_string(),
             tool: "Bash".to_string(),
-            pattern: r"(rm|unlink|mv)\s+.*\.cargo/bin/railyard".to_string(),
+            pattern: r"(rm|unlink|mv)\s+.*\.cargo/bin/railroad".to_string(),
             action: "block".to_string(),
-            message: Some("Blocked: agents cannot remove the Railyard binary".to_string()),
+            message: Some("Blocked: agents cannot remove the Railroad binary".to_string()),
         },
     ]
 }
@@ -368,7 +368,7 @@ mod tests {
     #[test]
     fn test_has_self_protection() {
         let rules = default_blocklist();
-        assert!(rules.iter().any(|r| r.name == "railyard-uninstall"));
+        assert!(rules.iter().any(|r| r.name == "railroad-uninstall"));
     }
 
     #[test]

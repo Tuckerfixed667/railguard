@@ -17,7 +17,7 @@ use app::{App, Filter, Mode};
 pub fn run(session: Option<String>) -> i32 {
     let cwd = std::env::current_dir().unwrap_or_default();
     let trace_dir = trace::logger::global_trace_dir();
-    let state_dir = cwd.join(".railyard/state");
+    let state_dir = cwd.join(".railroad/state");
 
     match run_tui(session, &trace_dir, &state_dir) {
         Ok(_) => 0,
@@ -32,7 +32,7 @@ pub fn run(session: Option<String>) -> i32 {
 pub fn run_stream(session: Option<String>, history: bool) -> i32 {
     let trace_dir = trace::logger::global_trace_dir();
 
-    eprintln!("railyard dashboard — watching {}", trace_dir.display());
+    eprintln!("railroad dashboard — watching {}", trace_dir.display());
     eprintln!("Press Ctrl+C to stop.\n");
 
     // Load existing entries to get initial count (skip history)

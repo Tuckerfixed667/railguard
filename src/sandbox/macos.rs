@@ -19,8 +19,8 @@ pub fn generate_profile(config: &FenceConfig, cwd: &str) -> String {
     let mut profile = String::new();
 
     // Header
-    profile.push_str(";; Railyard OS-level sandbox profile\n");
-    profile.push_str(";; Generated from railyard.yaml fence config\n");
+    profile.push_str(";; Railroad OS-level sandbox profile\n");
+    profile.push_str(";; Generated from railroad.yaml fence config\n");
     profile.push_str(";; Usage: sandbox-exec -f this-file.sb -- sh -c \"command\"\n");
     profile.push_str("(version 1)\n");
     profile.push_str("(deny default)\n\n");

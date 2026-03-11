@@ -3,9 +3,9 @@ use std::path::Path;
 use std::process::Command;
 use std::time::{SystemTime, Duration};
 
-const REMOTE_URL: &str = "https://github.com/railyarddev/railyard.git";
+const REMOTE_URL: &str = "https://github.com/railroaddev/railroad.git";
 const CHECK_INTERVAL: Duration = Duration::from_secs(7 * 24 * 60 * 60); // 1 week
-const BUILD_HASH: &str = env!("RAILYARD_GIT_HASH");
+const BUILD_HASH: &str = env!("RAILROAD_GIT_HASH");
 
 /// Check for updates. Two checks:
 /// 1. Security tag — every session, <100ms. For emergency patches.
@@ -52,15 +52,15 @@ fn check_security_tag() -> Option<String> {
     }
 
     Some(
-        "⚠ A security patch for Railyard is available. \
-         Run `cargo install --git https://github.com/railyarddev/railyard.git` to update immediately."
+        "⚠ A security patch for Railroad is available. \
+         Run `cargo install --git https://github.com/railroaddev/railroad.git` to update immediately."
             .to_string(),
     )
 }
 
 /// Check if main branch has moved ahead of our build. Rate-limited to once per week.
 fn check_main_branch(cwd: &Path) -> Option<String> {
-    let marker = cwd.join(".railyard/last-update-check");
+    let marker = cwd.join(".railroad/last-update-check");
 
     // Rate limit: skip if checked recently
     if let Ok(meta) = fs::metadata(&marker) {
@@ -74,7 +74,7 @@ fn check_main_branch(cwd: &Path) -> Option<String> {
     }
 
     // Touch the marker file regardless of outcome
-    let _ = fs::create_dir_all(cwd.join(".railyard"));
+    let _ = fs::create_dir_all(cwd.join(".railroad"));
     let _ = fs::write(&marker, "");
 
     if BUILD_HASH == "unknown" {
@@ -102,8 +102,8 @@ fn check_main_branch(cwd: &Path) -> Option<String> {
     }
 
     Some(
-        "A new version of Railyard is available. \
-         Run `cargo install --git https://github.com/railyarddev/railyard.git` to update."
+        "A new version of Railroad is available. \
+         Run `cargo install --git https://github.com/railroaddev/railroad.git` to update."
             .to_string(),
     )
 }

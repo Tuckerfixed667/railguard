@@ -1,12 +1,12 @@
-# Contributing to Railyard
+# Contributing to Railroad
 
-Thanks for your interest in contributing! Railyard is early-stage and we welcome all contributions.
+Thanks for your interest in contributing! Railroad is early-stage and we welcome all contributions.
 
 ## Getting started
 
 ```bash
-git clone https://github.com/railyarddev/railyard.git
-cd railyard
+git clone https://github.com/railroaddev/railroad.git
+cd railroad
 cargo test
 ```
 
@@ -19,7 +19,7 @@ cargo test
 
 ## What to work on
 
-Check [open issues](https://github.com/railyarddev/railyard/issues) or pick from these areas:
+Check [open issues](https://github.com/railroaddev/railroad/issues) or pick from these areas:
 
 - **New blocklist rules** — add rules for common destructive commands we're missing
 - **Evasion detection** — new encoding schemes, shell tricks, interpreter bypasses

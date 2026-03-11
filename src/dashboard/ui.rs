@@ -68,7 +68,7 @@ fn draw_header(f: &mut Frame, app: &App, area: Rect) {
     };
 
     let header = Line::from(vec![
-        Span::styled(" railyard", Style::default().fg(TEXT).bold()),
+        Span::styled(" railroad", Style::default().fg(TEXT).bold()),
         Span::styled(
             format!(
                 " \u{2500}\u{2500}{} {} calls \u{2500}\u{2500} {}m {:02}s{}",

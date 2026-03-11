@@ -34,7 +34,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
     let cwd = Path::new(&input.cwd);
 
     // Load persistent session state
-    let state_dir = cwd.join(".railyard/state");
+    let state_dir = cwd.join(".railroad/state");
     let mut state = SessionState::load(&state_dir, &input.session_id);
     state.increment_tool_call();
 
@@ -43,7 +43,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
         let _ = state.save(&state_dir);
         return PreToolResult {
             output: HookOutput::deny(
-                "⛔ RAILYARD: Session terminated due to evasion detection. Start a new Claude Code session.",
+                "⛔ RAILROAD: Session terminated due to evasion detection. Start a new Claude Code session.",
             ),
             terminate: None,
         };
@@ -71,7 +71,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
 
             return PreToolResult {
                 output: HookOutput::deny(
-                    "⛔ RAILYARD CRITICAL: Behavioral evasion detected. \
+                    "⛔ RAILROAD CRITICAL: Behavioral evasion detected. \
                      Retried blocked command with different syntax. \
                      Session terminated. Do not attempt any further tool calls.",
                 ),
@@ -93,7 +93,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
 
                     return PreToolResult {
                         output: HookOutput::deny(&format!(
-                            "⛔ RAILYARD CRITICAL: Evasion pattern detected ({}). \
+                            "⛔ RAILROAD CRITICAL: Evasion pattern detected ({}). \
                              Session terminated. Do not attempt any further tool calls.",
                             pattern
                         )),
@@ -114,7 +114,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
 
                         return PreToolResult {
                             output: HookOutput::deny(&format!(
-                                "⛔ RAILYARD CRITICAL: Repeated suspicious pattern ({}). \
+                                "⛔ RAILROAD CRITICAL: Repeated suspicious pattern ({}). \
                                  Session terminated. Do not attempt any further tool calls.",
                                 pattern
                             )),
@@ -266,7 +266,7 @@ let _ = e;
                 input, policy, tool_name, &tool_input, "block", Some(rule), start,
             );
             PreToolResult {
-                output: HookOutput::deny(&format!("⛔ Railyard BLOCKED: {}", message)),
+                output: HookOutput::deny(&format!("⛔ Railroad BLOCKED: {}", message)),
                 terminate: None,
             }
         }
@@ -281,7 +281,7 @@ let _ = e;
                 input, policy, tool_name, &tool_input, "approve", Some(rule), start,
             );
             PreToolResult {
-                output: HookOutput::ask(&format!("⚠️ Railyard: {} — requires approval", message)),
+                output: HookOutput::ask(&format!("⚠️ Railroad: {} — requires approval", message)),
                 terminate: None,
             }
         }

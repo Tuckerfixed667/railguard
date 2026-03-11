@@ -1,7 +1,7 @@
-/// railyard-shell: A POSIX shell shim that wraps every command in an OS sandbox.
+/// railroad-shell: A POSIX shell shim that wraps every command in an OS sandbox.
 ///
 /// Claude Code calls this as its shell (via CLAUDE_CODE_SHELL env var).
-/// Every `Bash` tool call runs: railyard-shell -c "command"
+/// Every `Bash` tool call runs: railroad-shell -c "command"
 /// Which becomes: sandbox-exec -f profile.sb -- /bin/sh -c "command"
 ///
 /// The user never changes their workflow. They type `claude` as normal.
@@ -14,9 +14,9 @@ use std::process::{Command, ExitCode};
 #[cfg(not(unix))]
 use std::process::Stdio;
 
-use railyard::policy::loader::load_policy_or_defaults;
-use railyard::sandbox::detect::{detect_sandbox, SandboxCapability};
-use railyard::sandbox::macos;
+use railroad::policy::loader::load_policy_or_defaults;
+use railroad::sandbox::detect::{detect_sandbox, SandboxCapability};
+use railroad::sandbox::macos;
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
@@ -25,17 +25,17 @@ fn main() -> ExitCode {
     // If someone accidentally invokes it with CLI subcommands, bail early
     // and point them to the correct binary.
     if args.len() > 1 && !args[1].starts_with('-') {
-        eprintln!("railyard-shell is the sandbox shell wrapper, not the CLI.");
-        eprintln!("Use `railyard {}` instead.", args[1]);
+        eprintln!("railroad-shell is the sandbox shell wrapper, not the CLI.");
+        eprintln!("Use `railroad {}` instead.", args[1]);
         return ExitCode::from(1);
     }
 
     // Recursion guard: if we're already inside a sandbox, just exec bare shell
-    if env::var("RAILYARD_SANDBOXED").is_ok() {
+    if env::var("RAILROAD_SANDBOXED").is_ok() {
         return exec_bare(&args);
     }
 
-    // Parse shell-compatible args: railyard-shell -c "command string"
+    // Parse shell-compatible args: railroad-shell -c "command string"
     let command_str = match parse_shell_args(&args) {
         Some(cmd) => cmd,
         None => {
@@ -85,14 +85,14 @@ fn parse_shell_args(args: &[String]) -> Option<String> {
 
 /// Execute command inside macOS sandbox-exec.
 fn exec_macos_sandbox(
-    fence: &railyard::types::FenceConfig,
+    fence: &railroad::types::FenceConfig,
     cwd: &str,
     command: &str,
 ) -> ExitCode {
     let profile = macos::generate_profile(fence, cwd);
 
-    // Write profile to a temp file inside .railyard/
-    let profile_dir = Path::new(cwd).join(".railyard");
+    // Write profile to a temp file inside .railroad/
+    let profile_dir = Path::new(cwd).join(".railroad");
     let _ = std::fs::create_dir_all(&profile_dir);
     let profile_path = profile_dir.join("shell-sandbox.sb");
     if std::fs::write(&profile_path, &profile).is_err() {
@@ -111,9 +111,9 @@ fn exec_macos_sandbox(
             .arg("/bin/sh")
             .arg("-c")
             .arg(command)
-            .env("RAILYARD_SANDBOXED", "1")
+            .env("RAILROAD_SANDBOXED", "1")
             .exec();
-        eprintln!("railyard-shell: exec failed: {}", err);
+        eprintln!("railroad-shell: exec failed: {}", err);
         ExitCode::from(127)
     }
 
@@ -126,7 +126,7 @@ fn exec_macos_sandbox(
             .arg("/bin/sh")
             .arg("-c")
             .arg(command)
-            .env("RAILYARD_SANDBOXED", "1")
+            .env("RAILROAD_SANDBOXED", "1")
             .stdin(Stdio::inherit())
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
@@ -140,7 +140,7 @@ fn exec_macos_sandbox(
 
 /// Execute command inside Linux bubblewrap sandbox.
 fn exec_linux_sandbox(
-    fence: &railyard::types::FenceConfig,
+    fence: &railroad::types::FenceConfig,
     cwd: &str,
     command: &str,
 ) -> ExitCode {
@@ -193,10 +193,10 @@ fn exec_linux_sandbox(
                 .arg("/bin/sh")
                 .arg("-c")
                 .arg(command);
-            cmd.env("RAILYARD_SANDBOXED", "1");
+            cmd.env("RAILROAD_SANDBOXED", "1");
 
             let err = cmd.exec();
-            eprintln!("railyard-shell: exec bwrap failed: {}", err);
+            eprintln!("railroad-shell: exec bwrap failed: {}", err);
             return ExitCode::from(127);
         }
     }
@@ -214,7 +214,7 @@ fn exec_bare_command(command: &str) -> ExitCode {
             .arg("-c")
             .arg(command)
             .exec();
-        eprintln!("railyard-shell: exec failed: {}", err);
+        eprintln!("railroad-shell: exec failed: {}", err);
         ExitCode::from(127)
     }
 
@@ -244,7 +244,7 @@ fn exec_bare(args: &[String]) -> ExitCode {
             cmd.arg(arg);
         }
         let err = cmd.exec();
-        eprintln!("railyard-shell: exec failed: {}", err);
+        eprintln!("railroad-shell: exec failed: {}", err);
         ExitCode::from(127)
     }
 

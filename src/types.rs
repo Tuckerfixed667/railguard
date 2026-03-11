@@ -186,7 +186,7 @@ impl Default for TraceConfig {
 }
 
 fn default_trace_dir() -> String {
-    ".railyard/traces".to_string()
+    ".railroad/traces".to_string()
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -218,7 +218,7 @@ fn default_snapshot_tools() -> Vec<String> {
 }
 
 fn default_snapshot_dir() -> String {
-    ".railyard/snapshots".to_string()
+    ".railroad/snapshots".to_string()
 }
 
 // ── Trace Entry ──

@@ -24,7 +24,7 @@ pub fn session_context_message(session_id: &str) -> Option<String> {
     }
 
     let mut lines = vec![
-        "[Railyard] Other active sessions:".to_string(),
+        "[Railroad] Other active sessions:".to_string(),
     ];
 
     for (sid, files) in &sessions {
@@ -37,7 +37,7 @@ pub fn session_context_message(session_id: &str) -> Option<String> {
         lines.push(format!("  - Session ...{}: editing {}", short_sid, file_list));
     }
 
-    lines.push("Avoid editing files locked by other sessions. Railyard will block conflicting writes.".to_string());
+    lines.push("Avoid editing files locked by other sessions. Railroad will block conflicting writes.".to_string());
 
     Some(lines.join("\n"))
 }

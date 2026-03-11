@@ -3,7 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 /// Persistent session state for threat detection.
-/// Stored at `.railyard/state/{session_id}.json`.
+/// Stored at `.railroad/state/{session_id}.json`.
 /// Each hook invocation loads, modifies, and saves this state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionState {

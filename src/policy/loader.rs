@@ -2,19 +2,19 @@ use std::path::{Path, PathBuf};
 
 use crate::types::Policy;
 
-/// Find railyard.yaml by walking up from the given directory.
+/// Find railroad.yaml by walking up from the given directory.
 pub fn find_policy_file(start_dir: &Path) -> Option<PathBuf> {
     let mut current = start_dir.to_path_buf();
     loop {
-        let candidate = current.join("railyard.yaml");
+        let candidate = current.join("railroad.yaml");
         if candidate.exists() {
             return Some(candidate);
         }
-        let candidate = current.join("railyard.yml");
+        let candidate = current.join("railroad.yml");
         if candidate.exists() {
             return Some(candidate);
         }
-        let candidate = current.join(".railyard.yaml");
+        let candidate = current.join(".railroad.yaml");
         if candidate.exists() {
             return Some(candidate);
         }
@@ -42,7 +42,7 @@ pub fn load_policy_or_defaults(cwd: &Path) -> Policy {
         Some(path) => match load_policy(&path) {
             Ok(policy) => merge_with_defaults(policy),
             Err(e) => {
-                eprintln!("railyard: warning: {}", e);
+                eprintln!("railroad: warning: {}", e);
                 default_policy()
             }
         },
@@ -148,7 +148,7 @@ fence:
   denied_paths:
     - "~/.ssh"
 "#;
-        let path = dir.path().join("railyard.yaml");
+        let path = dir.path().join("railroad.yaml");
         let mut f = std::fs::File::create(&path).unwrap();
         f.write_all(yaml.as_bytes()).unwrap();
 
@@ -163,7 +163,7 @@ fence:
         let sub = dir.path().join("a/b/c");
         std::fs::create_dir_all(&sub).unwrap();
 
-        let yaml_path = dir.path().join("railyard.yaml");
+        let yaml_path = dir.path().join("railroad.yaml");
         std::fs::write(&yaml_path, "version: 1\n").unwrap();
 
         let found = find_policy_file(&sub);
@@ -181,7 +181,7 @@ blocklist:
     pattern: "[invalid"
     action: block
 "#;
-        let path = dir.path().join("railyard.yaml");
+        let path = dir.path().join("railroad.yaml");
         std::fs::write(&path, yaml).unwrap();
 
         let result = load_policy(&path);

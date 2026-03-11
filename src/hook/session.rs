@@ -16,7 +16,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> HookOutput {
     let update_message = update::check_for_update(cwd);
 
     // Check for recently terminated sessions and warn
-    let state_dir = cwd.join(".railyard/state");
+    let state_dir = cwd.join(".railroad/state");
     let terminated = SessionState::find_recent_terminations(&state_dir);
     if !terminated.is_empty() {
         for state in &terminated {

@@ -8,31 +8,31 @@ pub fn claude_settings_path() -> PathBuf {
     home.join(".claude").join("settings.json")
 }
 
-/// Get the path to the railyard binary.
-fn railyard_binary_path() -> String {
+/// Get the path to the railroad binary.
+fn railroad_binary_path() -> String {
     std::env::current_exe()
         .map(|p| p.display().to_string())
-        .unwrap_or_else(|_| "railyard".to_string())
+        .unwrap_or_else(|_| "railroad".to_string())
 }
 
-/// Get the path to the railyard-shell binary (sibling of the railyard binary).
-fn railyard_shell_path() -> String {
+/// Get the path to the railroad-shell binary (sibling of the railroad binary).
+fn railroad_shell_path() -> String {
     std::env::current_exe()
         .ok()
-        .and_then(|p| p.parent().map(|dir| dir.join("railyard-shell")))
+        .and_then(|p| p.parent().map(|dir| dir.join("railroad-shell")))
         .map(|p| p.display().to_string())
-        .unwrap_or_else(|| "railyard-shell".to_string())
+        .unwrap_or_else(|| "railroad-shell".to_string())
 }
 
-/// The CLAUDE.md content that teaches Claude about Railyard.
+/// The CLAUDE.md content that teaches Claude about Railroad.
 const CLAUDE_MD_CONTENT: &str = include_str!("../../defaults/CLAUDE.md");
 
-/// Marker used to identify Railyard's section in CLAUDE.md.
-const CLAUDE_MD_MARKER_START: &str = "<!-- railyard:start -->";
-const CLAUDE_MD_MARKER_END: &str = "<!-- railyard:end -->";
+/// Marker used to identify Railroad's section in CLAUDE.md.
+const CLAUDE_MD_MARKER_START: &str = "<!-- railroad:start -->";
+const CLAUDE_MD_MARKER_END: &str = "<!-- railroad:end -->";
 
 /// Enable "dangerously skip permissions" (bypass mode) in Claude Code settings.
-/// Railyard replaces the built-in permission system, so bypass mode is safe.
+/// Railroad replaces the built-in permission system, so bypass mode is safe.
 pub fn enable_bypass_permissions() -> Result<String, String> {
     let settings_path = claude_settings_path();
     let mut settings = read_settings(&settings_path)?;
@@ -59,8 +59,8 @@ pub fn enable_bypass_permissions() -> Result<String, String> {
     Ok("Enabled bypass permissions mode in Claude Code".to_string())
 }
 
-/// Disable bypass permissions mode when Railyard is uninstalled.
-/// Without Railyard, the user should go back to Claude Code's built-in permissions.
+/// Disable bypass permissions mode when Railroad is uninstalled.
+/// Without Railroad, the user should go back to Claude Code's built-in permissions.
 pub fn disable_bypass_permissions() -> Result<String, String> {
     let settings_path = claude_settings_path();
     if !settings_path.exists() {
@@ -87,11 +87,11 @@ pub fn disable_bypass_permissions() -> Result<String, String> {
     Ok("Disabled bypass permissions mode".to_string())
 }
 
-/// Install railyard hooks into Claude Code settings.
+/// Install railroad hooks into Claude Code settings.
 pub fn install_hooks() -> Result<String, String> {
     let settings_path = claude_settings_path();
     let mut settings = read_settings(&settings_path)?;
-    let binary = railyard_binary_path();
+    let binary = railroad_binary_path();
 
     let hooks = settings
         .as_object_mut()
@@ -137,9 +137,9 @@ pub fn install_hooks() -> Result<String, String> {
     hooks_obj.insert("PostToolUse".to_string(), post_hook);
     hooks_obj.insert("SessionStart".to_string(), session_hook);
 
-    // Set CLAUDE_CODE_SHELL to railyard-shell for OS-level sandboxing.
+    // Set CLAUDE_CODE_SHELL to railroad-shell for OS-level sandboxing.
     // This makes every Bash tool call run through our sandboxed shell.
-    let shell_binary = railyard_shell_path();
+    let shell_binary = railroad_shell_path();
     if std::path::Path::new(&shell_binary).exists() {
         let env_obj = settings
             .as_object_mut()
@@ -157,17 +157,17 @@ pub fn install_hooks() -> Result<String, String> {
 
     write_settings(&settings_path, &settings)?;
 
-    // Inject CLAUDE.md so Claude knows about Railyard
+    // Inject CLAUDE.md so Claude knows about Railroad
     let claude_md_msg = inject_claude_md()?;
 
     let sandbox_msg = if std::path::Path::new(&shell_binary).exists() {
         format!("\n  ✓ OS sandbox shell: {}", shell_binary)
     } else {
-        "\n  ● OS sandbox: railyard-shell not found (run cargo install to build)".to_string()
+        "\n  ● OS sandbox: railroad-shell not found (run cargo install to build)".to_string()
     };
 
     Ok(format!(
-        "Installed railyard hooks in {}\n  {} {}{}",
+        "Installed railroad hooks in {}\n  {} {}{}",
         settings_path.display(),
         "✓",
         claude_md_msg,
@@ -175,7 +175,7 @@ pub fn install_hooks() -> Result<String, String> {
     ))
 }
 
-/// Inject Railyard instructions into the user's CLAUDE.md file.
+/// Inject Railroad instructions into the user's CLAUDE.md file.
 /// This teaches Claude Code about rollback, context, and what's blocked.
 fn inject_claude_md() -> Result<String, String> {
     let home = dirs::home_dir().ok_or("Could not determine home directory")?;
@@ -191,7 +191,7 @@ fn inject_claude_md() -> Result<String, String> {
             .map_err(|e| format!("Failed to read CLAUDE.md: {}", e))?;
 
         if existing.contains(CLAUDE_MD_MARKER_START) {
-            // Replace existing railyard section
+            // Replace existing railroad section
             let before = existing
                 .split(CLAUDE_MD_MARKER_START)
                 .next()
@@ -205,7 +205,7 @@ fn inject_claude_md() -> Result<String, String> {
             fs::write(&claude_md_path, updated.trim().to_string() + "\n")
                 .map_err(|e| format!("Failed to update CLAUDE.md: {}", e))?;
 
-            return Ok("Updated Railyard instructions in ~/.claude/CLAUDE.md".to_string());
+            return Ok("Updated Railroad instructions in ~/.claude/CLAUDE.md".to_string());
         }
 
         // Append to existing file
@@ -213,7 +213,7 @@ fn inject_claude_md() -> Result<String, String> {
         fs::write(&claude_md_path, updated)
             .map_err(|e| format!("Failed to update CLAUDE.md: {}", e))?;
 
-        Ok("Added Railyard instructions to ~/.claude/CLAUDE.md".to_string())
+        Ok("Added Railroad instructions to ~/.claude/CLAUDE.md".to_string())
     } else {
         // Create new file
         if let Some(parent) = claude_md_path.parent() {
@@ -223,17 +223,17 @@ fn inject_claude_md() -> Result<String, String> {
         fs::write(&claude_md_path, format!("{}\n", marked_content))
             .map_err(|e| format!("Failed to create CLAUDE.md: {}", e))?;
 
-        Ok("Created ~/.claude/CLAUDE.md with Railyard instructions".to_string())
+        Ok("Created ~/.claude/CLAUDE.md with Railroad instructions".to_string())
     }
 }
 
-/// Remove railyard hooks from Claude Code settings.
+/// Remove railroad hooks from Claude Code settings.
 /// Requires explicit human confirmation via a native OS dialog.
 pub fn uninstall_hooks() -> Result<String, String> {
     // Check if running interactively (a TTY is attached)
     // Agents pipe stdin, so this catches most automated attempts
     if !is_interactive_terminal() {
-        return Err("Railyard can only be uninstalled from an interactive terminal.\n  \
+        return Err("Railroad can only be uninstalled from an interactive terminal.\n  \
                     This prevents AI agents from removing their own guardrails."
             .to_string());
     }
@@ -252,16 +252,16 @@ pub fn uninstall_hooks() -> Result<String, String> {
     let mut settings = read_settings(&settings_path)?;
 
     if let Some(hooks) = settings.get_mut("hooks").and_then(|h| h.as_object_mut()) {
-        // Remove only hooks that reference railyard
+        // Remove only hooks that reference railroad
         for event in &["PreToolUse", "PostToolUse", "SessionStart"] {
             if let Some(event_hooks) = hooks.get_mut(*event) {
                 if let Some(arr) = event_hooks.as_array_mut() {
                     arr.retain(|entry| {
-                        let is_railyard = entry
+                        let is_railroad = entry
                             .pointer("/hooks/0/command")
                             .and_then(|c| c.as_str())
-                            .is_some_and(|c| c.contains("railyard"));
-                        !is_railyard
+                            .is_some_and(|c| c.contains("railroad"));
+                        !is_railroad
                     });
                     if arr.is_empty() {
                         hooks.remove(*event);
@@ -281,19 +281,19 @@ pub fn uninstall_hooks() -> Result<String, String> {
 
     write_settings(&settings_path, &settings)?;
 
-    // Disable bypass permissions — without Railyard, use built-in permissions
+    // Disable bypass permissions — without Railroad, use built-in permissions
     let _ = disable_bypass_permissions();
 
     // Clean up CLAUDE.md
     remove_claude_md_section();
 
     Ok(format!(
-        "Removed railyard hooks from {}",
+        "Removed railroad hooks from {}",
         settings_path.display()
     ))
 }
 
-/// Remove Railyard section from CLAUDE.md during uninstall.
+/// Remove Railroad section from CLAUDE.md during uninstall.
 fn remove_claude_md_section() {
     let home = match dirs::home_dir() {
         Some(h) => h,
@@ -328,7 +328,7 @@ fn is_interactive_terminal() -> bool {
     std::io::stdin().is_terminal() && std::io::stdout().is_terminal()
 }
 
-/// Show a native OS confirmation dialog for uninstalling Railyard.
+/// Show a native OS confirmation dialog for uninstalling Railroad.
 /// Returns true if the user confirmed, false if cancelled.
 /// This is the key security boundary — an AI agent cannot click a GUI button.
 fn show_uninstall_confirmation() -> Result<bool, String> {
@@ -344,7 +344,7 @@ fn show_uninstall_confirmation() -> Result<bool, String> {
 /// macOS: native dialog via osascript (AppleScript)
 fn show_macos_dialog() -> Result<bool, String> {
     let script = r#"
-        display dialog "Remove Railyard guardrails?\n\nClaude Code will run without restrictions until you reinstall.\n\nTo turn protection back on:\n  railyard install" with title "Railyard" with icon caution buttons {"Cancel", "Remove"} default button "Cancel" cancel button "Cancel"
+        display dialog "Remove Railroad guardrails?\n\nClaude Code will run without restrictions until you reinstall.\n\nTo turn protection back on:\n  railroad install" with title "Railroad" with icon caution buttons {"Cancel", "Remove"} default button "Cancel" cancel button "Cancel"
     "#;
 
     let output = std::process::Command::new("osascript")
@@ -362,8 +362,8 @@ fn show_windows_dialog() -> Result<bool, String> {
     let script = r#"
         Add-Type -AssemblyName System.Windows.Forms
         $result = [System.Windows.Forms.MessageBox]::Show(
-            "Remove Railyard guardrails?`n`nClaude Code will run without restrictions until you reinstall.`n`nTo turn protection back on:`n  railyard install",
-            "Railyard",
+            "Remove Railroad guardrails?`n`nClaude Code will run without restrictions until you reinstall.`n`nTo turn protection back on:`n  railroad install",
+            "Railroad",
             [System.Windows.Forms.MessageBoxButtons]::YesNo,
             [System.Windows.Forms.MessageBoxIcon]::Warning,
             [System.Windows.Forms.MessageBoxDefaultButton]::Button2
@@ -386,8 +386,8 @@ fn show_linux_dialog() -> Result<bool, String> {
     // Try zenity first (GNOME/GTK)
     if let Ok(output) = std::process::Command::new("zenity")
         .arg("--question")
-        .arg("--title=Railyard")
-        .arg("--text=Remove Railyard guardrails?\n\nClaude Code will run without restrictions until you reinstall.\n\nTo turn protection back on: railyard install")
+        .arg("--title=Railroad")
+        .arg("--text=Remove Railroad guardrails?\n\nClaude Code will run without restrictions until you reinstall.\n\nTo turn protection back on: railroad install")
         .arg("--ok-label=Remove Protection")
         .arg("--cancel-label=Cancel")
         .arg("--icon-name=dialog-warning")
@@ -400,9 +400,9 @@ fn show_linux_dialog() -> Result<bool, String> {
     // Try kdialog (KDE)
     if let Ok(output) = std::process::Command::new("kdialog")
         .arg("--warningyesno")
-        .arg("Remove Railyard guardrails?\n\nClaude Code will run without restrictions until you reinstall.\n\nTo turn protection back on: railyard install")
+        .arg("Remove Railroad guardrails?\n\nClaude Code will run without restrictions until you reinstall.\n\nTo turn protection back on: railroad install")
         .arg("--title")
-        .arg("Railyard")
+        .arg("Railroad")
         .arg("--yes-label")
         .arg("Remove Protection")
         .arg("--no-label")
@@ -424,10 +424,10 @@ fn show_terminal_confirmation() -> Result<bool, String> {
 
     eprintln!();
     eprintln!();
-    eprintln!("  Remove Railyard guardrails?");
+    eprintln!("  Remove Railroad guardrails?");
     eprintln!();
     eprintln!("  Claude Code will run without restrictions until you reinstall.");
-    eprintln!("  To turn protection back on: railyard install");
+    eprintln!("  To turn protection back on: railroad install");
     eprintln!();
     eprint!("  Type \"remove\" to confirm: ");
     std::io::stderr().flush().ok();
@@ -440,7 +440,7 @@ fn show_terminal_confirmation() -> Result<bool, String> {
     Ok(input.trim() == "remove")
 }
 
-/// Check if railyard hooks are currently installed.
+/// Check if railroad hooks are currently installed.
 pub fn check_installed() -> Result<bool, String> {
     let settings_path = claude_settings_path();
     if !settings_path.exists() {
@@ -453,7 +453,7 @@ pub fn check_installed() -> Result<bool, String> {
         if let Some(pre) = hooks.get("PreToolUse").and_then(|v| v.as_array()) {
             for entry in pre {
                 if let Some(cmd) = entry.pointer("/hooks/0/command").and_then(|c| c.as_str()) {
-                    if cmd.contains("railyard") {
+                    if cmd.contains("railroad") {
                         return Ok(true);
                     }
                 }

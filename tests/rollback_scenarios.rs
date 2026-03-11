@@ -1,7 +1,7 @@
-/// Integration tests for Railyard's rollback and context system.
+/// Integration tests for Railroad's rollback and context system.
 ///
 /// These tests simulate real editing sessions: files get created, modified,
-/// and deleted — then we use Railyard's snapshot system to travel back in time
+/// and deleted — then we use Railroad's snapshot system to travel back in time
 /// and verify everything is restored correctly.
 use std::fs;
 use std::path::Path;
@@ -13,8 +13,8 @@ fn create_session(
     session_id: &str,
     tool_use_id: &str,
     file_path: &str,
-) -> railyard::types::SnapshotEntry {
-    railyard::snapshot::capture::capture_snapshot(snap_dir, session_id, tool_use_id, file_path)
+) -> railroad::types::SnapshotEntry {
+    railroad::snapshot::capture::capture_snapshot(snap_dir, session_id, tool_use_id, file_path)
         .unwrap()
 }
 
@@ -42,21 +42,21 @@ fn rollback_multi_edit_to_any_point() {
     fs::write(&file, "// everything is broken").unwrap();
 
     // Rollback to version 3 (before the "everything is broken" write)
-    railyard::snapshot::rollback::rollback_by_id(snap_dir.path(), "s1", &snap3.id).unwrap();
+    railroad::snapshot::rollback::rollback_by_id(snap_dir.path(), "s1", &snap3.id).unwrap();
     assert_eq!(
         fs::read_to_string(&file).unwrap(),
         "fn main() { panic!(\"bug!\"); }\nfn feature() {}"
     );
 
     // Rollback to version 2 (before the bug was introduced)
-    railyard::snapshot::rollback::rollback_by_id(snap_dir.path(), "s1", &snap2.id).unwrap();
+    railroad::snapshot::rollback::rollback_by_id(snap_dir.path(), "s1", &snap2.id).unwrap();
     assert_eq!(
         fs::read_to_string(&file).unwrap(),
         "fn main() { println!(\"v2\"); }\nfn feature() {}"
     );
 
     // Rollback to version 1 (the original)
-    railyard::snapshot::rollback::rollback_by_id(snap_dir.path(), "s1", &snap1.id).unwrap();
+    railroad::snapshot::rollback::rollback_by_id(snap_dir.path(), "s1", &snap1.id).unwrap();
     assert_eq!(
         fs::read_to_string(&file).unwrap(),
         "fn main() { println!(\"v1\"); }"
@@ -80,7 +80,7 @@ fn rollback_removes_newly_created_file() {
     assert!(file.exists());
 
     // Rollback — file should be deleted
-    railyard::snapshot::rollback::rollback_by_id(snap_dir.path(), "s1", &snap.id).unwrap();
+    railroad::snapshot::rollback::rollback_by_id(snap_dir.path(), "s1", &snap.id).unwrap();
     assert!(!file.exists());
 }
 
@@ -116,7 +116,7 @@ fn rollback_entire_session_multiple_files() {
     assert!(fs::read_to_string(&config).unwrap().contains("production"));
 
     // Rollback entire session
-    let msgs = railyard::snapshot::rollback::rollback_session(snap_dir.path(), "s1").unwrap();
+    let msgs = railroad::snapshot::rollback::rollback_session(snap_dir.path(), "s1").unwrap();
     assert_eq!(msgs.len(), 3);
 
     // All files should be back to original
@@ -152,7 +152,7 @@ fn rollback_steps_undoes_last_n_edits() {
     fs::write(&file_b, "edit 2 of b").unwrap();
 
     // Undo last 2 edits (should restore file_a to "edit 1 of a" and file_b to "edit 1 of b")
-    railyard::snapshot::rollback::rollback_steps(snap_dir.path(), "s1", 2).unwrap();
+    railroad::snapshot::rollback::rollback_steps(snap_dir.path(), "s1", 2).unwrap();
 
     assert_eq!(fs::read_to_string(&file_a).unwrap(), "edit 1 of a");
     assert_eq!(fs::read_to_string(&file_b).unwrap(), "edit 1 of b");
@@ -179,7 +179,7 @@ fn rollback_single_file_leaves_others_intact() {
     fs::write(&bad_file, "bad modified (revert this)").unwrap();
 
     // Only rollback the bad file
-    railyard::snapshot::rollback::rollback_file(
+    railroad::snapshot::rollback::rollback_file(
         snap_dir.path(),
         "s1",
         bad_file.to_str().unwrap(),
@@ -211,7 +211,7 @@ fn context_includes_file_changes_and_rollback_commands() {
     let snap = create_session(snap_dir.path(), "s1", "t1", file.to_str().unwrap());
 
     // Create a trace entry
-    let trace = railyard::types::TraceEntry {
+    let trace = railroad::types::TraceEntry {
         timestamp: "2026-03-09T12:00:00Z".to_string(),
         session_id: "s1".to_string(),
         event: "PreToolUse".to_string(),
@@ -221,13 +221,13 @@ fn context_includes_file_changes_and_rollback_commands() {
         rule: None,
         duration_ms: 1,
     };
-    railyard::trace::logger::log_trace(trace_dir.path(), "s1", &trace).unwrap();
+    railroad::trace::logger::log_trace(trace_dir.path(), "s1", &trace).unwrap();
 
     // Modify the file
     fs::write(&file, "fn main() { new_code(); }").unwrap();
 
     // Generate context
-    let context = railyard::context::generate_context(
+    let context = railroad::context::generate_context(
         trace_dir.path(),
         snap_dir.path(),
         "s1",
@@ -257,7 +257,7 @@ fn context_verbose_shows_diffs() {
     create_session(snap_dir.path(), "s1", "t1", file.to_str().unwrap());
     fs::write(&file, "line one\nline CHANGED\nline three\nnew line four\n").unwrap();
 
-    let context = railyard::context::generate_context(
+    let context = railroad::context::generate_context(
         trace_dir.path(),
         snap_dir.path(),
         "s1",
@@ -282,7 +282,7 @@ fn diff_shows_changes_between_snapshot_and_current() {
     create_session(snap_dir.path(), "s1", "t1", file.to_str().unwrap());
     fs::write(&file, "hello changed world\n").unwrap();
 
-    let diff = railyard::context::show_diff(
+    let diff = railroad::context::show_diff(
         snap_dir.path(),
         "s1",
         Some(file.to_str().unwrap()),
@@ -302,7 +302,7 @@ fn context_shows_blocked_commands() {
     let trace_dir = tempfile::tempdir().unwrap();
 
     // Log a blocked command
-    let trace = railyard::types::TraceEntry {
+    let trace = railroad::types::TraceEntry {
         timestamp: "2026-03-09T12:00:00Z".to_string(),
         session_id: "s1".to_string(),
         event: "PreToolUse".to_string(),
@@ -312,9 +312,9 @@ fn context_shows_blocked_commands() {
         rule: Some("terraform-destroy".to_string()),
         duration_ms: 1,
     };
-    railyard::trace::logger::log_trace(trace_dir.path(), "s1", &trace).unwrap();
+    railroad::trace::logger::log_trace(trace_dir.path(), "s1", &trace).unwrap();
 
-    let context = railyard::context::generate_context(
+    let context = railroad::context::generate_context(
         trace_dir.path(),
         snap_dir.path(),
         "s1",
@@ -356,7 +356,7 @@ fn digital_twin_fork_and_rollback() {
     fs::write(&test_rs, "fn test_api() { /* tests removed because they fail */ }").unwrap();
 
     // That's bad! Rollback the entire attempt
-    let msgs = railyard::snapshot::rollback::rollback_session(snap_dir.path(), "attempt-1").unwrap();
+    let msgs = railroad::snapshot::rollback::rollback_session(snap_dir.path(), "attempt-1").unwrap();
     assert_eq!(msgs.len(), 3);
 
     // Verify we're back to the original "good" state
@@ -404,7 +404,7 @@ fn rollback_doesnt_touch_untracked_files() {
     fs::write(&untracked, "untracked modified").unwrap();
 
     // Rollback session — should only restore tracked file
-    railyard::snapshot::rollback::rollback_session(snap_dir.path(), "s1").unwrap();
+    railroad::snapshot::rollback::rollback_session(snap_dir.path(), "s1").unwrap();
 
     assert_eq!(fs::read_to_string(&tracked).unwrap(), "tracked original");
     assert_eq!(
@@ -450,14 +450,14 @@ fn precise_step_back_through_edit_history() {
     assert_eq!(fs::read_to_string(&file).unwrap(), "v8: everything breaks");
 
     // Step back 1 → v7 snapshot restored (which contains v7 content)
-    railyard::snapshot::rollback::rollback_steps(snap_dir.path(), "s1", 1).unwrap();
+    railroad::snapshot::rollback::rollback_steps(snap_dir.path(), "s1", 1).unwrap();
     assert_eq!(fs::read_to_string(&file).unwrap(), "v7: add feature C");
 
     // Step back 3 more from original manifest → gets v4 snapshot
     // (steps 5, 6, 7 from the manifest which correspond to v5, v6, v7)
     // Actually rollback_steps reads from manifest and takes last N entries
     // Let's just step back the full history
-    railyard::snapshot::rollback::rollback_steps(snap_dir.path(), "s1", 4).unwrap();
+    railroad::snapshot::rollback::rollback_steps(snap_dir.path(), "s1", 4).unwrap();
     // The 4th from the end is v4's snapshot (which was taken before v5 was written)
     // So it restores v4
     assert_eq!(fs::read_to_string(&file).unwrap(), "v4: add feature B");
@@ -490,7 +490,7 @@ fn rollback_new_file_through_multiple_edits() {
     assert!(fs::read_to_string(&file).unwrap().contains("extra"));
 
     // Rollback to before creation — file should be deleted entirely
-    railyard::snapshot::rollback::rollback_session(snap_dir.path(), "s1").unwrap();
+    railroad::snapshot::rollback::rollback_session(snap_dir.path(), "s1").unwrap();
     assert!(!file.exists());
 }
 
@@ -514,7 +514,7 @@ fn manifest_records_complete_edit_history() {
         fs::write(&file, &format!("edit {}", i)).unwrap();
     }
 
-    let manifest = railyard::snapshot::capture::read_manifest(snap_dir.path(), "s1").unwrap();
+    let manifest = railroad::snapshot::capture::read_manifest(snap_dir.path(), "s1").unwrap();
     assert_eq!(manifest.len(), 10);
 
     // Each entry should have a unique tool_use_id
@@ -552,7 +552,7 @@ fn context_output_is_structured_and_complete() {
         ("allow", "Write", "b.rs"),
         ("block", "Bash", "rm -rf /"),
     ] {
-        let trace = railyard::types::TraceEntry {
+        let trace = railroad::types::TraceEntry {
             timestamp: "2026-03-09T12:00:00Z".to_string(),
             session_id: "s1".to_string(),
             event: "PreToolUse".to_string(),
@@ -566,10 +566,10 @@ fn context_output_is_structured_and_complete() {
             },
             duration_ms: 1,
         };
-        railyard::trace::logger::log_trace(trace_dir.path(), "s1", &trace).unwrap();
+        railroad::trace::logger::log_trace(trace_dir.path(), "s1", &trace).unwrap();
     }
 
-    let context = railyard::context::generate_context(
+    let context = railroad::context::generate_context(
         trace_dir.path(),
         snap_dir.path(),
         "s1",
@@ -578,7 +578,7 @@ fn context_output_is_structured_and_complete() {
     .unwrap();
 
     // Verify structure
-    assert!(context.contains("# Railyard Session Context"));
+    assert!(context.contains("# Railroad Session Context"));
     assert!(context.contains("## Summary"));
     assert!(context.contains("## Files Changed"));
     assert!(context.contains("## Blocked Commands"));

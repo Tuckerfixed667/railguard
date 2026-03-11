@@ -11,16 +11,16 @@ use std::io::Write;
 use std::process::Command;
 use tempfile::TempDir;
 
-fn railyard_binary() -> String {
+fn railroad_binary() -> String {
     let mut path = std::env::current_dir().unwrap();
-    path.push("target/debug/railyard");
+    path.push("target/debug/railroad");
     path.to_str().unwrap().to_string()
 }
 
 fn create_test_dir() -> TempDir {
     let dir = tempfile::tempdir().unwrap();
-    let yaml = "version: 1\nblocklist: []\ntrace:\n  enabled: true\n  directory: .railyard/traces";
-    let policy_path = dir.path().join("railyard.yaml");
+    let yaml = "version: 1\nblocklist: []\ntrace:\n  enabled: true\n  directory: .railroad/traces";
+    let policy_path = dir.path().join("railroad.yaml");
     std::fs::write(&policy_path, yaml).unwrap();
     dir
 }
@@ -30,7 +30,7 @@ fn simulate_hook(binary: &str, event: &str, input_json: &str) -> (i32, String, S
         .arg("hook")
         .arg("--event")
         .arg(event)
-        .env("RAILYARD_NO_KILL", "1")
+        .env("RAILROAD_NO_KILL", "1")
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
@@ -79,7 +79,7 @@ fn tier1_rev_pipe_sh_terminates() {
     let cwd = dir.path().to_str().unwrap();
 
     let input = make_bash_input("tier1-rev", cwd, "rev <<< 'yortsed mrofarret' | sh");
-    let (_, stdout, stderr) = simulate_hook(&railyard_binary(), "PreToolUse", &input);
+    let (_, stdout, stderr) = simulate_hook(&railroad_binary(), "PreToolUse", &input);
 
     assert!(output_contains_deny(&stdout), "should deny");
     assert!(output_contains_critical(&stdout), "should indicate CRITICAL");
@@ -87,7 +87,7 @@ fn tier1_rev_pipe_sh_terminates() {
         "stderr should mention termination: {}", stderr);
 
     // State file should exist and be marked terminated
-    let state_path = dir.path().join(".railyard/state/tier1-rev.json");
+    let state_path = dir.path().join(".railroad/state/tier1-rev.json");
     assert!(state_path.exists(), "state file should be created");
     let state: serde_json::Value = serde_json::from_str(
         &std::fs::read_to_string(&state_path).unwrap()
@@ -105,7 +105,7 @@ fn tier1_double_base64_terminates() {
         cwd,
         "echo abc123 | base64 -d | base64 -d | sh",
     );
-    let (_, stdout, _) = simulate_hook(&railyard_binary(), "PreToolUse", &input);
+    let (_, stdout, _) = simulate_hook(&railroad_binary(), "PreToolUse", &input);
     assert!(output_contains_deny(&stdout));
     assert!(output_contains_critical(&stdout));
 }
@@ -120,7 +120,7 @@ fn tier1_python_chr_terminates() {
         cwd,
         r#"python3 -c "import os; os.system(chr(114)+chr(109))""#,
     );
-    let (_, stdout, _) = simulate_hook(&railyard_binary(), "PreToolUse", &input);
+    let (_, stdout, _) = simulate_hook(&railroad_binary(), "PreToolUse", &input);
     assert!(output_contains_deny(&stdout));
     assert!(output_contains_critical(&stdout));
 }
@@ -135,7 +135,7 @@ fn tier1_printf_hex_terminates() {
         cwd,
         r"$(printf '\x72\x6d') -rf /tmp/something",
     );
-    let (_, stdout, _) = simulate_hook(&railyard_binary(), "PreToolUse", &input);
+    let (_, stdout, _) = simulate_hook(&railroad_binary(), "PreToolUse", &input);
     assert!(output_contains_deny(&stdout));
     assert!(output_contains_critical(&stdout));
 }
@@ -151,7 +151,7 @@ fn tier2_first_occurrence_warns() {
 
     // First: variable-then-execution — should warn but NOT terminate
     let input = make_bash_input("tier2-warn", cwd, r#"CMD="ls -la"; $CMD"#);
-    let (_, stdout, _) = simulate_hook(&railyard_binary(), "PreToolUse", &input);
+    let (_, stdout, _) = simulate_hook(&railroad_binary(), "PreToolUse", &input);
 
     // Should NOT contain CRITICAL (first occurrence = warning only)
     assert!(
@@ -168,7 +168,7 @@ fn tier2_second_occurrence_terminates() {
 
     // First occurrence — warning
     let input1 = make_bash_input("tier2-kill", cwd, r#"CMD="ls -la"; $CMD"#);
-    let (_, stdout1, _) = simulate_hook(&railyard_binary(), "PreToolUse", &input1);
+    let (_, stdout1, _) = simulate_hook(&railroad_binary(), "PreToolUse", &input1);
     assert!(
         !output_contains_critical(&stdout1),
         "first should not terminate"
@@ -176,7 +176,7 @@ fn tier2_second_occurrence_terminates() {
 
     // Second occurrence — should terminate
     let input2 = make_bash_input("tier2-kill", cwd, r#"X="echo hello"; $X"#);
-    let (_, stdout2, _) = simulate_hook(&railyard_binary(), "PreToolUse", &input2);
+    let (_, stdout2, _) = simulate_hook(&railroad_binary(), "PreToolUse", &input2);
     assert!(
         output_contains_critical(&stdout2),
         "second Tier 2 should terminate: {}",
@@ -195,12 +195,12 @@ fn tier3_retry_after_block_terminates() {
 
     // Step 1: Run terraform destroy — gets blocked by policy
     let input1 = make_bash_input("tier3-retry", cwd, "terraform destroy");
-    let (_, stdout1, _) = simulate_hook(&railyard_binary(), "PreToolUse", &input1);
+    let (_, stdout1, _) = simulate_hook(&railroad_binary(), "PreToolUse", &input1);
     assert!(output_contains_deny(&stdout1), "terraform destroy should be blocked");
 
     // Step 2: Try again with same keywords — behavioral evasion detected
     let input2 = make_bash_input("tier3-retry", cwd, "terraform apply -destroy");
-    let (_, stdout2, _) = simulate_hook(&railyard_binary(), "PreToolUse", &input2);
+    let (_, stdout2, _) = simulate_hook(&railroad_binary(), "PreToolUse", &input2);
     // Should be blocked (either by policy or behavioral detection)
     assert!(output_contains_deny(&stdout2), "retry should be caught: {}", stdout2);
 }
@@ -216,10 +216,10 @@ fn state_persists_across_invocations() {
 
     // First call
     let input1 = make_bash_input("persist-test", cwd, "echo hello");
-    simulate_hook(&railyard_binary(), "PreToolUse", &input1);
+    simulate_hook(&railroad_binary(), "PreToolUse", &input1);
 
     // State file should exist
-    let state_path = dir.path().join(".railyard/state/persist-test.json");
+    let state_path = dir.path().join(".railroad/state/persist-test.json");
     assert!(state_path.exists(), "state file should be created");
 
     let state1: serde_json::Value =
@@ -228,7 +228,7 @@ fn state_persists_across_invocations() {
 
     // Second call
     let input2 = make_bash_input("persist-test", cwd, "echo world");
-    simulate_hook(&railyard_binary(), "PreToolUse", &input2);
+    simulate_hook(&railroad_binary(), "PreToolUse", &input2);
 
     let state2: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&state_path).unwrap()).unwrap();
@@ -242,12 +242,12 @@ fn terminated_session_blocks_all_subsequent() {
 
     // Trigger Tier 1 termination
     let input1 = make_bash_input("dead-session", cwd, "rev <<< 'test' | sh");
-    let (_, stdout1, _) = simulate_hook(&railyard_binary(), "PreToolUse", &input1);
+    let (_, stdout1, _) = simulate_hook(&railroad_binary(), "PreToolUse", &input1);
     assert!(output_contains_critical(&stdout1));
 
     // Subsequent safe command should still be blocked
     let input2 = make_bash_input("dead-session", cwd, "echo hello");
-    let (_, stdout2, _) = simulate_hook(&railyard_binary(), "PreToolUse", &input2);
+    let (_, stdout2, _) = simulate_hook(&railroad_binary(), "PreToolUse", &input2);
     assert!(
         output_contains_deny(&stdout2),
         "terminated session should block all commands: {}",
@@ -266,9 +266,9 @@ fn termination_creates_trace_entry() {
     let session_id = format!("forensic-test-{}", std::process::id());
 
     let input = make_bash_input(&session_id, cwd, "rev <<< 'test' | sh");
-    simulate_hook(&railyard_binary(), "PreToolUse", &input);
+    simulate_hook(&railroad_binary(), "PreToolUse", &input);
 
-    let global_trace_dir = std::path::PathBuf::from(std::env::var("HOME").unwrap()).join(".railyard/traces");
+    let global_trace_dir = std::path::PathBuf::from(std::env::var("HOME").unwrap()).join(".railroad/traces");
     let trace_path = global_trace_dir.join(format!("{}.jsonl", session_id));
     assert!(trace_path.exists(), "trace file should exist");
 
@@ -303,7 +303,7 @@ fn normal_commands_unaffected_by_threat_system() {
 
     for cmd in &safe_commands {
         let input = make_bash_input("safe-test", cwd, cmd);
-        let (_, stdout, _) = simulate_hook(&railyard_binary(), "PreToolUse", &input);
+        let (_, stdout, _) = simulate_hook(&railroad_binary(), "PreToolUse", &input);
         assert!(
             !output_contains_critical(&stdout),
             "'{}' should not trigger threat detection: {}",

@@ -1,10 +1,10 @@
 #!/bin/sh
-# install.sh — Installer for railyard
-# Usage: curl -fsSL https://raw.githubusercontent.com/railyarddev/railyard/main/install.sh | sh
+# install.sh — Installer for railroad
+# Usage: curl -fsSL https://raw.githubusercontent.com/railroaddev/railroad/main/install.sh | sh
 set -e
 
-REPO="railyarddev/railyard"
-BINARY="railyard"
+REPO="railroaddev/railroad"
+BINARY="railroad"
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -149,7 +149,7 @@ post_install() {
 # ---------------------------------------------------------------------------
 
 main() {
-    printf "\n\033[1m  Railyard Installer\033[0m\n\n"
+    printf "\n\033[1m  Railroad Installer\033[0m\n\n"
 
     detect_platform
     info "Detected platform: ${TARGET}"
@@ -170,7 +170,7 @@ main() {
 
     post_install
 
-    printf "\n\033[1m  Done!\033[0m Run \033[1mrailyard --help\033[0m to get started.\n\n"
+    printf "\n\033[1m  Done!\033[0m Run \033[1mrailroad --help\033[0m to get started.\n\n"
 }
 
 main

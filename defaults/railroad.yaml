@@ -1,7 +1,7 @@
-# Railyard Policy Configuration
-# https://github.com/railyarddev/railyard
+# Railroad Policy Configuration
+# https://github.com/railroaddev/railroad
 #
-# This file controls how Railyard protects your development environment.
+# This file controls how Railroad protects your development environment.
 # Rules are evaluated in order: allowlist → blocklist → approve → default allow.
 
 version: 1
@@ -80,7 +80,7 @@ fence:
 
 trace:
   enabled: true
-  directory: .railyard/traces
+  directory: .railroad/traces
 
 # ── Snapshot ─────────────────────────────────────────────────────────
 # Per-edit file snapshots for rollback.
@@ -88,4 +88,4 @@ trace:
 snapshot:
   enabled: true
   tools: [Write, Edit]
-  directory: .railyard/snapshots
+  directory: .railroad/snapshots

@@ -66,7 +66,7 @@ pub fn generate_landlock_snippet(config: &FenceConfig, cwd: &str) -> String {
         .unwrap_or_else(|| "/home/user".to_string());
 
     let mut code = String::new();
-    code.push_str("// Landlock enforcement for Railyard\n");
+    code.push_str("// Landlock enforcement for Railroad\n");
     code.push_str("// Requires: landlock = \"0.4\" in Cargo.toml\n");
     code.push_str("// Requires: Linux kernel 5.13+\n\n");
     code.push_str("use landlock::{\n");
