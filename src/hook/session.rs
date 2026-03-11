@@ -44,7 +44,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> HookOutput {
         };
 
         if let Err(e) = log_trace(&trace_dir, &input.session_id, &entry) {
-            eprintln!("railyard: trace warning: {}", e);
+            let _ = e;
         }
     }
 

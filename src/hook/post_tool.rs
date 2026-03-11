@@ -48,7 +48,7 @@ pub fn handle(input: &HookInput, policy: &Policy) {
     };
 
     if let Err(e) = log_trace(&trace_dir, &input.session_id, &entry) {
-        eprintln!("railyard: trace warning: {}", e);
+        let _ = e;
     }
 
     // Update heartbeat on file locks for Write/Edit

@@ -242,7 +242,8 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
                     if let Err(e) =
                         capture_snapshot(&snap_dir, &input.session_id, tool_use_id, file_path)
                     {
-                        eprintln!("railyard: snapshot warning: {}", e);
+                        // silently ignore — stderr causes "hook error" in Claude Code
+let _ = e;
                     }
                 }
             }
@@ -315,7 +316,7 @@ fn log_decision(
     };
 
     if let Err(e) = log_trace(&trace_dir, &input.session_id, &entry) {
-        eprintln!("railyard: trace warning: {}", e);
+        let _ = e;
     }
 }
 
