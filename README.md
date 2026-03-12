@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">Railroad</h1>
-  <p align="center"><strong>Run Claude Code autonomously and safely.</strong></p>
+  <p align="center"><strong>Railroad is the runtime layer that makes coding agents production-safe.</strong></p>
   <p align="center"><a href="https://railroad.tech">railroad.tech</a></p>
 </p>
 
