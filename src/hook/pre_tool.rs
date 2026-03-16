@@ -35,7 +35,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
     let cwd = Path::new(&input.cwd);
 
     // Load persistent session state
-    let state_dir = cwd.join(".railroad/state");
+    let state_dir = cwd.join(".railguard/state");
     let mut state = SessionState::load(&state_dir, &input.session_id);
     state.increment_tool_call();
 
@@ -44,7 +44,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
         let _ = state.save(&state_dir);
         return PreToolResult {
             output: HookOutput::deny(
-                "⛔ RAILROAD: Session terminated due to evasion detection. Start a new Claude Code session.",
+                "⛔ RAILGUARD: Session terminated due to evasion detection. Start a new Claude Code session.",
             ),
             terminate: None,
         };
@@ -72,7 +72,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
 
             return PreToolResult {
                 output: HookOutput::deny(
-                    "⛔ RAILROAD CRITICAL: Behavioral evasion detected. \
+                    "⛔ RAILGUARD CRITICAL: Behavioral evasion detected. \
                      Retried blocked command with different syntax. \
                      Session terminated. Do not attempt any further tool calls.",
                 ),
@@ -94,7 +94,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
 
                     return PreToolResult {
                         output: HookOutput::deny(&format!(
-                            "⛔ RAILROAD CRITICAL: Evasion pattern detected ({}). \
+                            "⛔ RAILGUARD CRITICAL: Evasion pattern detected ({}). \
                              Session terminated. Do not attempt any further tool calls.",
                             pattern
                         )),
@@ -115,7 +115,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
 
                         return PreToolResult {
                             output: HookOutput::deny(&format!(
-                                "⛔ RAILROAD CRITICAL: Repeated suspicious pattern ({}). \
+                                "⛔ RAILGUARD CRITICAL: Repeated suspicious pattern ({}). \
                                  Session terminated. Do not attempt any further tool calls.",
                                 pattern
                             )),
@@ -200,7 +200,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
                         Some("memory-guard"), start,
                     );
                     return PreToolResult {
-                        output: HookOutput::deny(&format!("⛔ Railroad: {}", reason)),
+                        output: HookOutput::deny(&format!("⛔ Railguard: {}", reason)),
                         terminate: None,
                     };
                 }
@@ -211,7 +211,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> PreToolResult {
                         Some("memory-guard"), start,
                     );
                     return PreToolResult {
-                        output: HookOutput::ask(&format!("⚠️ Railroad: {}", reason)),
+                        output: HookOutput::ask(&format!("⚠️ Railguard: {}", reason)),
                         terminate: None,
                     };
                 }
@@ -344,7 +344,7 @@ let _ = e;
                 input, policy, tool_name, &tool_input, "block", Some(rule), start,
             );
             PreToolResult {
-                output: HookOutput::deny(&format!("⛔ Railroad BLOCKED: {}", message)),
+                output: HookOutput::deny(&format!("⛔ Railguard BLOCKED: {}", message)),
                 terminate: None,
             }
         }
@@ -359,7 +359,7 @@ let _ = e;
                 input, policy, tool_name, &tool_input, "approve", Some(rule), start,
             );
             PreToolResult {
-                output: HookOutput::ask(&format!("⚠️ Railroad: {} — requires approval", message)),
+                output: HookOutput::ask(&format!("⚠️ Railguard: {} — requires approval", message)),
                 terminate: None,
             }
         }

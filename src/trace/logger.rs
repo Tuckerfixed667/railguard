@@ -4,11 +4,11 @@ use std::path::{Path, PathBuf};
 
 use crate::types::TraceEntry;
 
-/// Return the global trace directory: ~/.railroad/traces
+/// Return the global trace directory: ~/.railguard/traces
 pub fn global_trace_dir() -> PathBuf {
     dirs::home_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join(".railroad")
+        .join(".railguard")
         .join("traces")
 }
 

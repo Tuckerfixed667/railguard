@@ -19,9 +19,9 @@ Steps to reproduce:
 
 **Environment**
 - OS: [e.g., macOS 15, Ubuntu 24.04]
-- Railroad version: [e.g., 0.1.0]
+- Railguard version: [e.g., 0.1.0]
 - Claude Code version: [e.g., 1.x]
-- Config: [default / custom railroad.yaml]
+- Config: [default / custom railguard.yaml]
 
 **Logs**
-Paste any relevant output from `railroad log` or `railroad status`.
+Paste any relevant output from `railguard log` or `railguard status`.

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-// Quick demo that shows Railroad in action after install.
-// Run: npx railroad demo
+// Quick demo that shows Railguard in action after install.
+// Run: npx railguard demo
 
 const { execSync } = require("child_process");
 
@@ -18,8 +18,8 @@ function print(msg) {
 
 function demo() {
   print("");
-  print(`  ${BOLD}railroad demo${RESET}`);
-  print(`  ${DIM}See what Railroad protects you from${RESET}`);
+  print(`  ${BOLD}railguard demo${RESET}`);
+  print(`  ${DIM}See what Railguard protects you from${RESET}`);
   print("");
 
   const scenarios = [
@@ -72,7 +72,7 @@ function demo() {
     let result;
     try {
       const output = execSync(
-        `echo '${input.replace(/'/g, "\\'")}' | railroad hook --event PreToolUse`,
+        `echo '${input.replace(/'/g, "\\'")}' | railguard hook --event PreToolUse`,
         { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }
       );
       const parsed = JSON.parse(output);
@@ -101,8 +101,8 @@ function demo() {
   }
 
   print("");
-  print(`  ${BOLD}Railroad is working.${RESET}`);
-  print(`  Run ${CYAN}railroad configure${RESET} to customize your protections.`);
+  print(`  ${BOLD}Railguard is working.${RESET}`);
+  print(`  Run ${CYAN}railguard configure${RESET} to customize your protections.`);
   print("");
 }
 

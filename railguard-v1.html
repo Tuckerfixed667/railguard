@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Railroad — The Runtime Layer for AI Agents</title>
+<title>Railguard — The Runtime Layer for AI Agents</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -366,7 +366,7 @@
     <a href="#features">Features</a>
     <a href="#how">Install</a>
     <a href="#">Docs</a>
-    <a href="https://github.com/railroad/railroad" class="nav-cta">GitHub →</a>
+    <a href="https://github.com/railguard/railguard" class="nav-cta">GitHub →</a>
   </div>
 </nav>
 
@@ -374,8 +374,8 @@
   <div class="hero-left">
     <div class="hero-tag">Open-source · Rust · MIT</div>
     <h1>The runtime<br>layer for <em>AI agents</em><br>in production.</h1>
-    <p class="hero-sub">Every agent action passes through Railroad before it hits the world. One hook. Full control. Zero latency. On-device, nothing leaves your machine.</p>
-    <a href="https://github.com/railroad/railroad" class="btn-primary">Star on GitHub →</a>
+    <p class="hero-sub">Every agent action passes through Railguard before it hits the world. One hook. Full control. Zero latency. On-device, nothing leaves your machine.</p>
+    <a href="https://github.com/railguard/railguard" class="btn-primary">Star on GitHub →</a>
   </div>
   <div class="hero-right">
     <div class="stat-row">
@@ -394,12 +394,12 @@
 <section class="features" id="features">
   <div class="features-header">
     <h2>Six features.<br>One floor.</h2>
-    <span>What Railroad does</span>
+    <span>What Railguard does</span>
   </div>
   <div class="feature-list">
     <div class="feature-row">
       <div class="feature-name">Intercept</div>
-      <div class="feature-desc">Every agent action is caught before it executes — file writes, shell commands, API calls, database queries. Nothing gets through without passing Railroad first.</div>
+      <div class="feature-desc">Every agent action is caught before it executes — file writes, shell commands, API calls, database queries. Nothing gets through without passing Railguard first.</div>
       <div class="feature-detail">Hooks directly into Claude Code's native hooks system. No changes to your agent, your prompts, or your workflow.</div>
     </div>
     <div class="feature-row">
@@ -419,7 +419,7 @@
     </div>
     <div class="feature-row">
       <div class="feature-name">Rollback</div>
-      <div class="feature-desc">Undo any agent action in one command. <code>railroad rollback [id]</code> and you're back. Works for files, config edits, and more.</div>
+      <div class="feature-desc">Undo any agent action in one command. <code>railguard rollback [id]</code> and you're back. Works for files, config edits, and more.</div>
       <div class="feature-detail">Automatic state snapshots before every intercepted write. Rollback is instant, atomic, and logged.</div>
     </div>
     <div class="feature-row">
@@ -439,14 +439,14 @@
         <div class="how-step-num">01</div>
         <div class="how-step-body">
           <div class="how-step-title">Install</div>
-          <div class="how-step-desc">One curl command. Railroad registers itself with Claude Code's native hooks system.</div>
+          <div class="how-step-desc">One curl command. Railguard registers itself with Claude Code's native hooks system.</div>
         </div>
       </div>
       <div class="how-step">
         <div class="how-step-num">02</div>
         <div class="how-step-body">
           <div class="how-step-title">Configure</div>
-          <div class="how-step-desc">Drop a <code style="color:#555;font-size:11px;">railroad.yaml</code> in your project. Define blocklists, approval rules, protected resources.</div>
+          <div class="how-step-desc">Drop a <code style="color:#555;font-size:11px;">railguard.yaml</code> in your project. Define blocklists, approval rules, protected resources.</div>
         </div>
       </div>
       <div class="how-step">
@@ -465,22 +465,22 @@
         <div class="term-dot y"></div>
         <div class="term-dot g"></div>
       </div>
-      <div class="term-title">railroad — zsh</div>
+      <div class="term-title">railguard — zsh</div>
     </div>
     <div class="code-terminal">
       <div class="t-comment"># install</div>
-      <div><span class="t-prompt">$</span><span class="t-cmd"> curl -fsSL https://railroad.dev/install.sh | sh</span></div>
+      <div><span class="t-prompt">$</span><span class="t-cmd"> curl -fsSL https://railguard.dev/install.sh | sh</span></div>
       <br>
-      <div><span class="t-prompt">$</span><span class="t-cmd"> railroad init</span></div>
+      <div><span class="t-prompt">$</span><span class="t-cmd"> railguard init</span></div>
       <div class="t-ok">✓ hooked into Claude Code hooks system</div>
-      <div class="t-ok">✓ policy loaded · railroad.yaml</div>
+      <div class="t-ok">✓ policy loaded · railguard.yaml</div>
       <div class="t-ok">✓ runtime active · async · on-device · 0ms overhead</div>
       <br>
       <div class="t-comment"># run your agent as normal</div>
       <div><span class="t-prompt">$</span><span class="t-cmd"> claude "clean up duplicate AWS resources"</span></div>
       <div class="t-blocked">⛔ BLOCKED  terraform destroy</div>
-      <div class="t-out">&nbsp;&nbsp;&nbsp;rule: destructive-infra · railroad.yaml:14</div>
-      <div class="t-out">&nbsp;&nbsp;&nbsp;action queued → railroad approve a3f9</div>
+      <div class="t-out">&nbsp;&nbsp;&nbsp;rule: destructive-infra · railguard.yaml:14</div>
+      <div class="t-out">&nbsp;&nbsp;&nbsp;action queued → railguard approve a3f9</div>
     </div>
   </div>
 </section>
@@ -497,7 +497,7 @@
 <section class="cta">
   <h2>Your agents are already<br>in <em>production.</em><br>Is there a floor?</h2>
   <div class="cta-right">
-    <a href="https://github.com/railroad/railroad" class="btn-primary" style="text-align:center;">Star on GitHub →</a>
+    <a href="https://github.com/railguard/railguard" class="btn-primary" style="text-align:center;">Star on GitHub →</a>
     <div class="meta-tags">
       <div class="meta-tag">MIT Licensed</div>
       <div class="meta-tag">Written in Rust</div>

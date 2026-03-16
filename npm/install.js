@@ -7,9 +7,9 @@ const os = require("os");
 const https = require("https");
 
 const VERSION = "0.1.0";
-const REPO = "railroaddev/railroad";
+const REPO = "railguard-dev/railguard";
 const BIN_DIR = path.join(__dirname, "bin");
-const BIN_PATH = path.join(BIN_DIR, "railroad");
+const BIN_PATH = path.join(BIN_DIR, "railguard");
 
 function getPlatform() {
   const platform = os.platform();
@@ -27,12 +27,12 @@ function getPlatform() {
 function tryCargoInstall() {
   console.log("  Building from source with cargo...");
   try {
-    execSync("cargo install --git https://github.com/railroaddev/railroad.git", {
+    execSync("cargo install --git https://github.com/railguard-dev/railguard.git", {
       stdio: "inherit",
     });
 
     // Find the cargo-installed binary and symlink it
-    const cargobin = path.join(os.homedir(), ".cargo", "bin", "railroad");
+    const cargobin = path.join(os.homedir(), ".cargo", "bin", "railguard");
     if (fs.existsSync(cargobin)) {
       fs.mkdirSync(BIN_DIR, { recursive: true });
       fs.symlinkSync(cargobin, BIN_PATH);
@@ -46,7 +46,7 @@ function tryCargoInstall() {
 
 function downloadRelease(target) {
   return new Promise((resolve, reject) => {
-    const filename = `railroad-v${VERSION}-${target}.tar.gz`;
+    const filename = `railguard-v${VERSION}-${target}.tar.gz`;
     const url = `https://github.com/${REPO}/releases/download/v${VERSION}/${filename}`;
 
     console.log(`  Downloading ${filename}...`);
@@ -57,7 +57,7 @@ function downloadRelease(target) {
       if (redirects > 5) return reject(new Error("Too many redirects"));
 
       https
-        .get(url, { headers: { "User-Agent": "railroad-npm" } }, (res) => {
+        .get(url, { headers: { "User-Agent": "railguard-npm" } }, (res) => {
           if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
             return follow(res.headers.location, redirects + 1);
           }
@@ -81,7 +81,7 @@ function downloadRelease(target) {
 
 async function main() {
   console.log();
-  console.log("  railroad install");
+  console.log("  railguard install");
   console.log();
 
   // Check if already installed
@@ -117,10 +117,10 @@ async function main() {
   }
 
   console.error();
-  console.error("  Failed to install railroad.");
+  console.error("  Failed to install railguard.");
   console.error();
   console.error("  To install manually:");
-  console.error("    cargo install --git https://github.com/railroaddev/railroad.git");
+  console.error("    cargo install --git https://github.com/railguard-dev/railguard.git");
   console.error();
   process.exit(1);
 }
@@ -128,9 +128,9 @@ async function main() {
 function postInstall() {
   console.log();
   console.log("  Next steps:");
-  console.log("    railroad install     — register hooks with Claude Code");
-  console.log("    railroad configure   — interactive protection setup");
-  console.log("    railroad status      — check current protection");
+  console.log("    railguard install     — register hooks with Claude Code");
+  console.log("    railguard configure   — interactive protection setup");
+  console.log("    railguard status      — check current protection");
   console.log();
 }
 

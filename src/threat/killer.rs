@@ -25,7 +25,7 @@ pub fn terminate_session(
     // 1. Mark state
     state.mark_terminated(&reason);
     if let Err(e) = state.save(state_dir) {
-        eprintln!("railroad: failed to save termination state: {}", e);
+        eprintln!("railguard: failed to save termination state: {}", e);
     }
 
     // 2. Forensic breadcrumb
@@ -41,17 +41,17 @@ pub fn terminate_session(
     };
 
     if let Err(e) = log_trace(trace_dir, &state.session_id, &entry) {
-        eprintln!("railroad: failed to log termination: {}", e);
+        eprintln!("railguard: failed to log termination: {}", e);
     }
 
     // 3. Log to stderr (visible in terminal)
     eprintln!();
-    eprintln!("  \x1b[1;31m⚠️  RAILROAD: SESSION TERMINATED\x1b[0m");
+    eprintln!("  \x1b[1;31m⚠️  RAILGUARD: SESSION TERMINATED\x1b[0m");
     eprintln!();
     eprintln!("  {}", reason);
     eprintln!("  Session: {}", state.session_id);
     eprintln!();
-    eprintln!("  Review: railroad log --session {}", state.session_id);
+    eprintln!("  Review: railguard log --session {}", state.session_id);
     eprintln!();
 
     // 4. Kill parent process (Claude Code)
@@ -89,10 +89,10 @@ fn format_termination_reason(tier: &ThreatTier, command: &str) -> String {
 }
 
 /// Send SIGTERM to the parent process (Claude Code).
-/// Skipped if RAILROAD_NO_KILL=1 is set (for testing).
+/// Skipped if RAILGUARD_NO_KILL=1 is set (for testing).
 #[cfg(unix)]
 fn kill_parent() {
-    if std::env::var("RAILROAD_NO_KILL").unwrap_or_default() == "1" {
+    if std::env::var("RAILGUARD_NO_KILL").unwrap_or_default() == "1" {
         return;
     }
     unsafe {
@@ -105,7 +105,7 @@ fn kill_parent() {
 
 #[cfg(not(unix))]
 fn kill_parent() {
-    eprintln!("railroad: cannot send SIGTERM on this platform");
+    eprintln!("railguard: cannot send SIGTERM on this platform");
 }
 
 /// Format the warning message shown on SessionStart after a termination.
@@ -120,13 +120,13 @@ pub fn format_restart_warning(state: &SessionState) -> String {
         .unwrap_or("unknown time");
 
     format!(
-        "⚠️  railroad: previous session was terminated due to evasion detection.\n\
+        "⚠️  railguard: previous session was terminated due to evasion detection.\n\
          \n\
          \x20 Session:  {}\n\
          \x20 Time:     {}\n\
          \x20 Reason:   {}\n\
          \n\
-         \x20 Full trace: railroad log --session {}",
+         \x20 Full trace: railguard log --session {}",
         state.session_id, timestamp, reason, state.session_id,
     )
 }

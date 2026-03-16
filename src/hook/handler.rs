@@ -11,7 +11,7 @@ pub fn run(event: &str) -> i32 {
     // Read stdin
     let mut input_str = String::new();
     if let Err(e) = std::io::stdin().read_to_string(&mut input_str) {
-        eprintln!("railroad: failed to read stdin: {}", e);
+        eprintln!("railguard: failed to read stdin: {}", e);
         return 0; // Don't block on read errors
     }
 
@@ -19,7 +19,7 @@ pub fn run(event: &str) -> i32 {
     let input: HookInput = match serde_json::from_str(&input_str) {
         Ok(i) => i,
         Err(e) => {
-            eprintln!("railroad: failed to parse hook input: {}", e);
+            eprintln!("railguard: failed to parse hook input: {}", e);
             return 0; // Don't block on parse errors
         }
     };
@@ -39,11 +39,11 @@ pub fn run(event: &str) -> i32 {
                     let _ = std::io::stdout().flush();
                 }
                 eprintln!(
-                    "\n\x1b[1;31m⚠️  RAILROAD INTEGRITY VIOLATION\x1b[0m\n\
-                     \x1b[31m   Railroad hooks have been removed or modified in ~/.claude/settings.json.\n\
+                    "\n\x1b[1;31m⚠️  RAILGUARD INTEGRITY VIOLATION\x1b[0m\n\
+                     \x1b[31m   Railguard hooks have been removed or modified in ~/.claude/settings.json.\n\
                      \x1b[31m   This may indicate the agent tampered with its own guardrails.\n\
                      \x1b[31m   All tool calls are blocked until hooks are restored.\n\
-                     \x1b[31m   Run: railroad install\x1b[0m\n"
+                     \x1b[31m   Run: railguard install\x1b[0m\n"
                 );
                 return 0;
             }
@@ -59,7 +59,7 @@ pub fn run(event: &str) -> i32 {
 
             // If termination requested, flush output first then kill
             if let Some(req) = result.terminate {
-                let state_dir = cwd.join(".railroad/state");
+                let state_dir = cwd.join(".railguard/state");
                 let trace_dir = crate::trace::logger::global_trace_dir();
                 let mut state = req.state;
                 terminate_session(&mut state, &req.tier, &req.command, &state_dir, &trace_dir);
@@ -83,18 +83,18 @@ pub fn run(event: &str) -> i32 {
             0
         }
         _ => {
-            eprintln!("railroad: unknown event: {}", event);
+            eprintln!("railguard: unknown event: {}", event);
             0
         }
     }
 }
 
-/// Verify that Railroad's hooks are still present in ~/.claude/settings.json.
+/// Verify that Railguard's hooks are still present in ~/.claude/settings.json.
 /// Returns Some(deny output) if hooks have been tampered with, None if OK.
 ///
 /// Logic: If settings.json has hook entries for OTHER events but NOT PreToolUse
-/// with railroad, that indicates tampering (someone selectively removed railroad).
-/// If hooks is empty or missing entirely, we assume railroad isn't installed yet
+/// with railguard, that indicates tampering (someone selectively removed railguard).
+/// If hooks is empty or missing entirely, we assume railguard isn't installed yet
 /// (the fact we're running means Claude Code is calling us — don't block).
 fn check_hook_integrity() -> Option<HookOutput> {
     let home = dirs::home_dir()?;
@@ -113,37 +113,37 @@ fn check_hook_integrity() -> Option<HookOutput> {
         return None;
     }
 
-    // Hooks exist but check if railroad is still among them
-    let has_railroad = hooks.values().any(|entries| {
+    // Hooks exist but check if railguard is still among them
+    let has_railguard = hooks.values().any(|entries| {
         let json_str = serde_json::to_string(entries).unwrap_or_default();
-        json_str.contains("railroad")
+        json_str.contains("railguard")
     });
 
-    if !has_railroad {
-        // Hooks exist for other things but railroad was removed — tampering
+    if !has_railguard {
+        // Hooks exist for other things but railguard was removed — tampering
         return Some(HookOutput::deny(
-            "⛔ RAILROAD INTEGRITY VIOLATION: Hooks removed from ~/.claude/settings.json. \
+            "⛔ RAILGUARD INTEGRITY VIOLATION: Hooks removed from ~/.claude/settings.json. \
              All tool calls blocked. The agent may have tampered with its own guardrails. \
-             Run 'railroad install' to restore protection.",
+             Run 'railguard install' to restore protection.",
         ));
     }
 
-    // Railroad hooks present — check PreToolUse specifically
+    // Railguard hooks present — check PreToolUse specifically
     let has_pre_tool = hooks
         .get("PreToolUse")
         .and_then(|v| v.as_array())
         .map(|arr| {
             arr.iter().any(|entry| {
                 let json_str = serde_json::to_string(entry).unwrap_or_default();
-                json_str.contains("railroad")
+                json_str.contains("railguard")
             })
         })
         .unwrap_or(false);
 
     if !has_pre_tool {
         return Some(HookOutput::deny(
-            "⛔ RAILROAD INTEGRITY VIOLATION: PreToolUse hook removed from settings.json. \
-             All tool calls blocked. Run 'railroad install' to restore protection.",
+            "⛔ RAILGUARD INTEGRITY VIOLATION: PreToolUse hook removed from settings.json. \
+             All tool calls blocked. Run 'railguard install' to restore protection.",
         ));
     }
 

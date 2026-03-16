@@ -3,10 +3,10 @@ use std::path::Path;
 use std::process::Command;
 use std::time::{SystemTime, Duration};
 
-const REMOTE_URL: &str = "https://github.com/railroaddev/railroad.git";
-const GITHUB_REPO: &str = "railroaddev/railroad";
+const REMOTE_URL: &str = "https://github.com/railguard-dev/railguard.git";
+const GITHUB_REPO: &str = "railguard-dev/railguard";
 const CHECK_INTERVAL: Duration = Duration::from_secs(7 * 24 * 60 * 60); // 1 week
-const BUILD_HASH: &str = env!("RAILROAD_GIT_HASH");
+const BUILD_HASH: &str = env!("RAILGUARD_GIT_HASH");
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Info about the latest release from GitHub.
@@ -108,7 +108,7 @@ fn detect_target() -> Option<String> {
     Some(format!("{}-{}", arch_label, os_label))
 }
 
-/// Find the install directory for the railroad binary.
+/// Find the install directory for the railguard binary.
 fn install_dir() -> String {
     // Use the directory of the currently running binary
     if let Ok(exe) = std::env::current_exe() {
@@ -128,7 +128,7 @@ fn install_dir() -> String {
 /// Download and install a prebuilt binary from a GitHub release.
 /// Returns Ok(true) if successful, Ok(false) if binary not available for platform.
 fn download_binary(tag: &str, target: &str, dest_dir: &str) -> Result<bool, String> {
-    let tarball = format!("railroad-{}-{}.tar.gz", tag, target);
+    let tarball = format!("railguard-{}-{}.tar.gz", tag, target);
     let url = format!(
         "https://github.com/{}/releases/download/{}/{}",
         GITHUB_REPO, tag, tarball
@@ -168,8 +168,8 @@ fn download_binary(tag: &str, target: &str, dest_dir: &str) -> Result<bool, Stri
     }
 
     // Move binaries
-    let binary_src = format!("{}/railroad", tmpdir);
-    let binary_dest = format!("{}/railroad", dest_dir);
+    let binary_src = format!("{}/railguard", tmpdir);
+    let binary_dest = format!("{}/railguard", dest_dir);
 
     if !Path::new(&binary_src).exists() {
         let _ = Command::new("rm").args(["-rf", &tmpdir]).output();
@@ -188,10 +188,10 @@ fn download_binary(tag: &str, target: &str, dest_dir: &str) -> Result<bool, Stri
 
     let _ = Command::new("chmod").args(["+x", &binary_dest]).output();
 
-    // Also move railroad-shell if present
-    let shell_src = format!("{}/railroad-shell", tmpdir);
+    // Also move railguard-shell if present
+    let shell_src = format!("{}/railguard-shell", tmpdir);
     if Path::new(&shell_src).exists() {
-        let shell_dest = format!("{}/railroad-shell", dest_dir);
+        let shell_dest = format!("{}/railguard-shell", dest_dir);
         let _ = Command::new("mv").args([&shell_src, &shell_dest]).output();
         let _ = Command::new("chmod").args(["+x", &shell_dest]).output();
     }
@@ -218,7 +218,7 @@ fn build_from_source() -> Result<(), String> {
 pub fn run_update(check_only: bool) -> i32 {
     use colored::Colorize;
 
-    println!("{}", "railroad update".bold());
+    println!("{}", "railguard update".bold());
     println!();
 
     // 1. Fetch latest release
@@ -261,7 +261,7 @@ pub fn run_update(check_only: bool) -> i32 {
 
     if check_only {
         println!();
-        println!("  Run {} to install this update.", "railroad update".cyan());
+        println!("  Run {} to install this update.", "railguard update".cyan());
         return 0;
     }
 
@@ -328,7 +328,7 @@ pub fn run_update(check_only: bool) -> i32 {
         Err(e) => {
             println!("{}", "warning".yellow());
             eprintln!("  {} Hook registration failed: {}", "!".yellow().bold(), e);
-            eprintln!("  Run {} to register manually.", "railroad install".cyan());
+            eprintln!("  Run {} to register manually.", "railguard install".cyan());
         }
     }
 
@@ -372,15 +372,15 @@ fn check_security_tag() -> Option<String> {
     }
 
     Some(
-        "⚠ A security patch for Railroad is available. \
-         Run `railroad update` to update immediately."
+        "⚠ A security patch for Railguard is available. \
+         Run `railguard update` to update immediately."
             .to_string(),
     )
 }
 
 /// Check if main branch has moved ahead of our build. Rate-limited to once per week.
 fn check_main_branch(cwd: &Path) -> Option<String> {
-    let marker = cwd.join(".railroad/last-update-check");
+    let marker = cwd.join(".railguard/last-update-check");
 
     // Rate limit: skip if checked recently
     if let Ok(meta) = fs::metadata(&marker) {
@@ -394,7 +394,7 @@ fn check_main_branch(cwd: &Path) -> Option<String> {
     }
 
     // Touch the marker file regardless of outcome
-    let _ = fs::create_dir_all(cwd.join(".railroad"));
+    let _ = fs::create_dir_all(cwd.join(".railguard"));
     let _ = fs::write(&marker, "");
 
     if BUILD_HASH == "unknown" {
@@ -422,8 +422,8 @@ fn check_main_branch(cwd: &Path) -> Option<String> {
     }
 
     Some(
-        "A new version of Railroad is available. \
-         Run `railroad update` to update."
+        "A new version of Railguard is available. \
+         Run `railguard update` to update."
             .to_string(),
     )
 }

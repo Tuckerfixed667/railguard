@@ -829,8 +829,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
-name = "railroad-ai"
-version = "0.3.4"
+name = "railguard"
+version = "0.4.0"
 dependencies = [
  "assert_cmd",
  "base64",

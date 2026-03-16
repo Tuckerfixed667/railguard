@@ -8,7 +8,7 @@ use crate::types::MemoryEntry;
 
 /// Directory where provenance data is stored.
 fn provenance_dir(cwd: &Path) -> PathBuf {
-    cwd.join(".railroad/memory")
+    cwd.join(".railguard/memory")
 }
 
 /// Path to the provenance manifest file.

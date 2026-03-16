@@ -14,7 +14,7 @@ We are committed to making participation in this project a welcoming experience 
 
 ## Enforcement
 
-Unacceptable behavior can be reported to ari@railroad.tech. All reports will be reviewed and responded to.
+Unacceptable behavior can be reported to ari@railguard.dev. All reports will be reviewed and responded to.
 
 Maintainers may remove, edit, or reject comments, commits, issues, and pull requests that violate this code of conduct.
 

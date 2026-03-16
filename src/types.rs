@@ -188,7 +188,7 @@ impl Default for TraceConfig {
 }
 
 fn default_trace_dir() -> String {
-    ".railroad/traces".to_string()
+    ".railguard/traces".to_string()
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -220,7 +220,7 @@ fn default_snapshot_tools() -> Vec<String> {
 }
 
 fn default_snapshot_dir() -> String {
-    ".railroad/snapshots".to_string()
+    ".railguard/snapshots".to_string()
 }
 
 // ── Memory Safety Types ──
@@ -252,7 +252,7 @@ impl Default for MemoryConfig {
 }
 
 /// Provenance record for a memory file write.
-/// Stored in .railroad/memory/provenance.jsonl
+/// Stored in .railguard/memory/provenance.jsonl
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MemoryEntry {
     pub id: String,

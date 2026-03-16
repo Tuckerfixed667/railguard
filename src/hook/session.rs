@@ -17,7 +17,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> HookOutput {
     let update_message = update::check_for_update(cwd);
 
     // Check for recently terminated sessions and warn
-    let state_dir = cwd.join(".railroad/state");
+    let state_dir = cwd.join(".railguard/state");
     let terminated = SessionState::find_recent_terminations(&state_dir);
     if !terminated.is_empty() {
         for state in &terminated {
@@ -56,7 +56,7 @@ pub fn handle(input: &HookInput, policy: &Policy) -> HookOutput {
             None
         } else {
             Some(format!(
-                "⚠️ Railroad Memory: {} memory file(s) have integrity issues. Run `railroad memory verify` for details.\n{}",
+                "⚠️ Railguard Memory: {} memory file(s) have integrity issues. Run `railguard memory verify` for details.\n{}",
                 warnings.len(),
                 warnings.iter().map(|w| format!("  • {}", w)).collect::<Vec<_>>().join("\n")
             ))

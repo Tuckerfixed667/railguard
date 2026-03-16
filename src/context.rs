@@ -23,7 +23,7 @@ pub fn generate_context(
 
     let mut out = String::new();
 
-    out.push_str(&format!("# Railroad Session Context: {}\n\n", session_id));
+    out.push_str(&format!("# Railguard Session Context: {}\n\n", session_id));
 
     // Summary stats
     let total_calls = traces.len();
@@ -156,19 +156,19 @@ pub fn generate_context(
     if !snapshots.is_empty() {
         out.push_str("## Available Rollback Commands\n\n");
         out.push_str(&format!(
-            "```bash\n# Undo the last edit\nrailroad rollback --session {} --steps 1\n\n",
+            "```bash\n# Undo the last edit\nrailguard rollback --session {} --steps 1\n\n",
             session_id
         ));
         out.push_str(&format!(
-            "# Undo the last N edits\nrailroad rollback --session {} --steps N\n\n",
+            "# Undo the last N edits\nrailguard rollback --session {} --steps N\n\n",
             session_id
         ));
         out.push_str(&format!(
-            "# Restore a specific file to its original state\nrailroad rollback --session {} --file <path>\n\n",
+            "# Restore a specific file to its original state\nrailguard rollback --session {} --file <path>\n\n",
             session_id
         ));
         out.push_str(&format!(
-            "# Restore everything to the session start\nrailroad rollback --session {} \n\n",
+            "# Restore everything to the session start\nrailguard rollback --session {} \n\n",
             session_id
         ));
 
@@ -177,7 +177,7 @@ pub fn generate_context(
         for snap in &snapshots {
             let state = if snap.existed { "before edit" } else { "before creation" };
             out.push_str(&format!(
-                "railroad rollback --session {} --id {}   # {} — {}\n",
+                "railguard rollback --session {} --id {}   # {} — {}\n",
                 session_id, snap.id, snap.file_path, state
             ));
         }

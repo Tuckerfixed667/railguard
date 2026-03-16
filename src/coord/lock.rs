@@ -38,11 +38,11 @@ impl std::fmt::Display for LockConflict {
 
 const STALE_TIMEOUT_SECS: u64 = 60;
 
-/// Return the global lock directory: ~/.railroad/locks
+/// Return the global lock directory: ~/.railguard/locks
 pub fn lock_dir() -> PathBuf {
     dirs::home_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join(".railroad")
+        .join(".railguard")
         .join("locks")
 }
 
@@ -355,7 +355,7 @@ mod tests {
     #[test]
     fn test_acquire_and_release() {
         // Use a unique file path to avoid test interference
-        let test_file = format!("/tmp/railroad-test-{}", std::process::id());
+        let test_file = format!("/tmp/railguard-test-{}", std::process::id());
         let session = "test-session-acquire";
 
         // Acquire
@@ -374,7 +374,7 @@ mod tests {
 
     #[test]
     fn test_conflict_detection() {
-        let test_file = format!("/tmp/railroad-test-conflict-{}", std::process::id());
+        let test_file = format!("/tmp/railguard-test-conflict-{}", std::process::id());
         let session_a = "session-a-conflict";
         let session_b = "session-b-conflict";
 
@@ -394,7 +394,7 @@ mod tests {
 
     #[test]
     fn test_release_all() {
-        let base = format!("/tmp/railroad-test-releaseall-{}", std::process::id());
+        let base = format!("/tmp/railguard-test-releaseall-{}", std::process::id());
         let session = "session-releaseall";
 
         acquire(&format!("{}-a", base), session).ok();

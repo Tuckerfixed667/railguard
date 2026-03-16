@@ -147,7 +147,7 @@ mod tests {
             snap_dir.path(),
             "session-1",
             "tool-1",
-            "/tmp/nonexistent_file_railroad_test.txt",
+            "/tmp/nonexistent_file_railguard_test.txt",
         )
         .unwrap();
 

@@ -1,6 +1,6 @@
 # Default Rules & Configuration
 
-Railroad ships with sensible defaults. Destructive commands require your approval. Evasion attempts are hard-blocked. Everything else flows through instantly.
+Railguard ships with sensible defaults. Destructive commands require your approval. Evasion attempts are hard-blocked. Everything else flows through instantly.
 
 ## Default rules
 
@@ -38,10 +38,10 @@ Railroad ships with sensible defaults. Destructive commands require your approva
 
 | Rule | What it catches |
 |------|----------------|
-| `railroad-uninstall` | `railroad uninstall` |
-| `railroad-tamper-settings` | Edits to `.claude/settings.json` |
-| `railroad-remove-binary` | `rm` targeting railroad binary |
-| `railroad-config-edit` | Edits to `railroad.yaml` (approve) |
+| `railguard-uninstall` | `railguard uninstall` |
+| `railguard-tamper-settings` | Edits to `.claude/settings.json` |
+| `railguard-remove-binary` | `rm` targeting railguard binary |
+| `railguard-config-edit` | Edits to `railguard.yaml` (approve) |
 
 ### Network & credentials (approve)
 
@@ -56,7 +56,7 @@ Railroad ships with sensible defaults. Destructive commands require your approva
 
 ## Evasion detection
 
-Agents have been [documented trying to bypass safety rules](https://github.com/anthropics/claude-code/issues/29691). Railroad normalizes commands before matching:
+Agents have been [documented trying to bypass safety rules](https://github.com/anthropics/claude-code/issues/29691). Railguard normalizes commands before matching:
 
 ```
 Direct:     terraform destroy                           → ⚠️  asks you
@@ -94,7 +94,7 @@ Your project directory     ✅ read/write
 
 ## Customizing
 
-Edit `railroad.yaml` or run `railroad configure`:
+Edit `railguard.yaml` or run `railguard configure`:
 
 ```yaml
 # Block a command entirely

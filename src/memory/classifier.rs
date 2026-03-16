@@ -69,7 +69,7 @@ fn is_behavioral(content: &str) -> bool {
         // Imperative instructions for future behavior
         r"(?i)\b(remember\s+to|make\s+sure\s+to|be\s+sure\s+to)\b",
         // Override/bypass instructions
-        r"(?i)\b(override|bypass|ignore|skip|disable)\s+(the\s+)?(safety|security|check|guard|hook|rule|policy|fence|railroad)\b",
+        r"(?i)\b(override|bypass|ignore|skip|disable)\s+(the\s+)?(safety|security|check|guard|hook|rule|policy|fence|railguard)\b",
     ];
 
     for pattern in &patterns {

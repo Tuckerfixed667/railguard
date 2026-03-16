@@ -1,7 +1,7 @@
-# Railroad Policy Configuration
-# https://github.com/railroaddev/railroad
+# Railguard Policy Configuration
+# https://github.com/railguard-dev/railguard
 #
-# This file controls how Railroad protects your development environment.
+# This file controls how Railguard protects your development environment.
 # Rules are evaluated in order: allowlist → blocklist → approve → default allow.
 
 version: 1
@@ -84,7 +84,7 @@ fence:
     - "~/.gnupg"
     - "~/.config/gcloud"
     - "/etc"
-    # Claude Code settings — blocked to prevent agent from disabling Railroad
+    # Claude Code settings — blocked to prevent agent from disabling Railguard
     - "~/.claude/settings.json"
 
 # ── Trace ────────────────────────────────────────────────────────────
@@ -92,7 +92,7 @@ fence:
 
 trace:
   enabled: true
-  directory: .railroad/traces
+  directory: .railguard/traces
 
 # ── Snapshot ─────────────────────────────────────────────────────────
 # Per-edit file snapshots for rollback.
@@ -100,4 +100,4 @@ trace:
 snapshot:
   enabled: true
   tools: [Write, Edit]
-  directory: .railroad/snapshots
+  directory: .railguard/snapshots

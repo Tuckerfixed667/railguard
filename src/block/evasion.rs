@@ -411,7 +411,7 @@ fn is_benign_path(path: &str) -> bool {
         || path.starts_with("/bin/")
         || path.starts_with("/sbin/")
         || path.starts_with("/opt/homebrew/bin/")
-        // Cargo binary path (railroad itself lives here)
+        // Cargo binary path (railguard itself lives here)
         || path.contains(".cargo/bin/")
         // Temporary files
         || path.starts_with("/tmp/")

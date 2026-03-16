@@ -1,22 +1,22 @@
 [package]
-name = "railroad-ai"
-version = "0.3.4"
+name = "railguard"
+version = "0.4.0"
 edition = "2021"
-description = "The runtime layer for AI agents in production"
+description = "Secure runtime for Claude Code. The safer alternative to --dangerously-skip-permissions."
 license = "MIT"
-repository = "https://github.com/railroaddev/railroad"
+repository = "https://github.com/railguard-dev/railguard"
 keywords = ["ai", "agents", "safety", "runtime", "claude"]
 
 [lib]
-name = "railroad"
+name = "railguard"
 path = "src/lib.rs"
 
 [[bin]]
-name = "railroad"
+name = "railguard"
 path = "src/main.rs"
 
 [[bin]]
-name = "railroad-shell"
+name = "railguard-shell"
 path = "src/shell.rs"
 
 [dependencies]
