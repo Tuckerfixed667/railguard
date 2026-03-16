@@ -2,7 +2,7 @@
 name = "railguard"
 version = "0.4.0"
 edition = "2021"
-description = "Secure runtime for Claude Code. The safer alternative to --dangerously-skip-permissions."
+description = "A secure runtime for Claude Code. The safer alternative to --dangerously-skip-permissions."
 license = "MIT"
 repository = "https://github.com/railguard-dev/railguard"
 keywords = ["ai", "agents", "safety", "runtime", "claude"]

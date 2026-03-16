@@ -5,7 +5,7 @@ use std::path::Path;
 use railguard::{configure, coord, context, dashboard, hook, install, memory, policy, replay, snapshot, trace, update};
 
 #[derive(Parser)]
-#[command(name = "railguard", version, about = "A secure runtime for AI coding agents.")]
+#[command(name = "railguard", version, about = "A secure runtime for Claude Code.")]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
