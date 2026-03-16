@@ -41,23 +41,23 @@ That's it. You keep using `claude` exactly as before.
 
 Railguard intercepts every tool call — Bash, Read, Write, Edit — and decides in <2ms: allow, block, or ask.
 
-`npm install && npm run build` — fine, go ahead.
+| Command | Decision |
+|---|---|
+| `npm install && npm run build` | ✅ allowed |
+| `git commit -m "feat: add auth"` | ✅ allowed |
+| `terraform destroy --auto-approve` | ⛔ blocked |
+| `rm -rf ~/` | ⛔ blocked |
+| `echo payload \| base64 -d \| sh` | ⛔ blocked |
+| `cat ~/.ssh/id_ed25519` | ⛔ blocked |
+| `curl -X POST api.com -d @secrets` | ⚠️ asks you |
+| `git push --force origin main` | ⚠️ asks you |
 
-`git commit -m "feat: add auth"` — sure.
+The same command can get different decisions depending on context:
 
-`terraform destroy --auto-approve` — **blocked.**
-
-`rm -rf ~/` — **blocked.**
-
-`echo payload | base64 -d | sh` — **blocked.**
-
-`cat ~/.ssh/id_ed25519` — **blocked.**
-
-`curl -X POST api.com -d @secrets` — **asks you.**
-
-`git push --force origin main` — **asks you.**
-
-The same command can get different decisions depending on context. `rm dist/bundle.js` inside your project is fine. `rm ~/.bashrc` is not.
+| Command | Context | Decision |
+|---|---|---|
+| `rm dist/bundle.js` | Inside project | ✅ allowed |
+| `rm ~/.bashrc` | Outside project | ⛔ blocked |
 
 99% of commands flow through instantly. You only see Railguard when it matters.
 
